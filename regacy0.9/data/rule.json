@@ -1,0 +1,9 @@
+{
+"mana_max":5,
+"board_max":3,
+"doesLandExist":False,
+"initialLife":20,
+"deck_min":20,
+"max_per_card":2,
+"initial_hand":3
+}

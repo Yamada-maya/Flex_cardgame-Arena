@@ -1,0 +1,131 @@
+[
+	{
+		"cardName": "slime",
+		"baseCost": 0,
+		"baseToughness": 1,
+		"basePower": 1,
+		"cardType": {
+			"main": "creature",
+			"sub": [
+				"slime"
+			]
+		},
+		"skills": {}
+	},
+	{
+		"cardName": "goblin",
+		"baseCost": 1,
+		"baseToughness": 1,
+		"basePower": 2,
+		"cardType": {
+			"main": "creature",
+			"sub": [
+				"goblin"
+			]
+		},
+		"skills": {
+			"cip": [
+				{
+					"name": "haste",
+					"cost": null
+				}
+			]
+		}
+	},
+	{
+		"cardName": "shaman",
+		"baseCost": 1,
+		"baseToughness": 1,
+		"basePower": 1,
+		"cardType": {
+			"main": "creature",
+			"sub": [
+				"wizard"
+			]
+		},
+		"skills": {
+			"activate": [
+				{
+				"name":"looter",
+				"cost":{
+					"tap":true,
+					"mana":0,
+					"discard":0,
+					"sacrifice":0
+					}
+				}
+			]
+		}
+	},
+	{
+		"cardName": "bear",
+		"baseCost": 2,
+		"baseToughness": 2,
+		"basePower": 2,
+		"cardType": {
+			"main": "creature",
+			"sub": [
+				"bear"
+			]
+		},
+		"skills": {}
+	},
+	{
+		"cardName": "knight",
+		"baseCost": 3,
+		"baseToughness": 3,
+		"basePower": 3,
+		"cardType": {
+			"main": "creature",
+			"sub": [
+				"knight"
+			]
+		},
+		"skills": {}
+	},
+	{
+		"cardName": "dragon",
+		"baseCost": 3,
+		"baseToughness": 2,
+		"basePower": 3,
+		"cardType": {
+			"main": "creature",
+			"sub": [
+				"dragon"
+			]
+		},
+		"skills": {
+			"cip": [
+				{
+				"name":"haste",
+				"cost":null
+				}
+			]
+		}
+	},
+	{
+		"cardName": "angel",
+		"baseCost": 3,
+		"baseToughness": 2,
+		"basePower": 2,
+		"cardType": {
+			"main": "creature",
+			"sub": [
+				"angel"
+			]
+		},
+		"skills": {
+			"activate": [
+				{
+				"name":"heal",
+				"cost":{
+					"tap":false,
+					"mana":2,
+					"discard":0,
+					"sacrifice":0
+					}
+				}
+			]
+		}
+	}
+]
