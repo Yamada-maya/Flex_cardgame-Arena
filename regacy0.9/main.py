@@ -9,6 +9,9 @@ import gameMaster as gm
 import copy
 import deckBuilder as db
 import brain
+import world as w
+import time as t
+import json
 class human(object):
 	"""docstring for human"""
 	def __init__(self):
@@ -18,14 +21,13 @@ class Application(tk.Frame):
 	def __init__(self, master=None,_deckListL=[],_deckListR=[]):
 		tk.Frame.__init__(self, master,width=640,height=480)
 		self.pack()
+		self.agents=[human(),brain.randomBrain()]
 		self.gm=gm.gameMaster([_deckListL,_deckListR])
 		self.tree=self.gm.developInitialGameTree()
 		self.visualizeFirstNode(self.tree.getWorld())
 		self.setUpUI(self.tree)
-		self.agents=[human(),human()]
 
 	def shift(self,_gameTree):
-		print(_gameTree)
 		self.visualizeMatchFromNode(_gameTree.getWorld())
 		if isinstance(self.agents[_gameTree.getWorld().getTurnPlayerIndex()],human):
 			self.setUpUI(_gameTree)
@@ -33,7 +35,26 @@ class Application(tk.Frame):
 		else:
 			self.chooseMoveByAI(_gameTree,self.agents[_gameTree.getWorld().getTurnPlayerIndex()])
 		pass
-	def chooseMoveByAI(self):
+	def chooseMoveByAI(self,_gameTree,_agent):
+		t.sleep(0.1)
+		print("waiting...")
+		def fetchSimulationTrees(_moveTuple):
+			self.retDict={
+				"index":_moveTuple[0],
+				"description":_moveTuple[1].getDescription(),
+				"tree":_moveTuple[1].getSimulateTree()}
+			return self.retDict
+			pass
+		self.moves=_gameTree.getMoves()
+		if len(self.moves)==1:
+			print(self.moves[0].getDescription())
+			self.shift(self.gm.force(self.moves[0].getGameTreePromise()))
+			return
+		self.visibleWorld=w.visibleWorld(_gameTree.getWorld())
+		self.simulationTrees=list(map(fetchSimulationTrees,enumerate(self.moves)))
+		#agentに選んでもらう
+		self.m=_agent.chooseBestMove(self.visibleWorld,self.simulationTrees)
+		self.shift(self.gm.force(self.moves[self.m["index"]].getGameTreePromise()))
 		return 
 		pass
 	def visualizeFirstNode(self,_world):
@@ -111,16 +132,21 @@ class Application(tk.Frame):
 		stepは何も選ばず次のフェーズへ、ボタン式UIは選んで行動。という感じで…
 		REMARK!!!:AIの行動の時はここをstepだけにする。
 		"""
-		self.moves=_gameTree.getMoves()
-		self.moveButton=[]
-		self.move=[]
-		for i,m in enumerate(self.moves):
-			#additionalMoveに任せきりにするのではなくきちんと描画時点で
-			#actionの数のButtonを作っておけという話な気がする
-			self.move.append(copy.deepcopy(m))
-			self.moveButton.append(tk.Button(self,text=self.move[i].getDescription(),command=lambda index=i:self.shift(self.gm.force(self.move[index].getGameTreePromise()))))
-			self.moveButton[i].place(relx=i/len(self.moves),rely=0.9,relwidth=1/len(self.moves),relheight=0.1)
+		if len(_gameTree.getMoves())==1 and _gameTree.getMoves()[0].getGameTreePromise() is None:
+			self.move=_gameTree.getMoves()
+			self.moveButton=[]
+			self.moveButton.append(tk.Button(self,text=self.move[0].getDescription(),command=lambda :self.shift(self.gm.developInitialGameTree())))
+			self.moveButton[0].place(relx=0,rely=0.9,relwidth=1,relheight=0.1)
 			pass
+		else:
+			self.moves=_gameTree.getMoves()
+			self.moveButton=[]
+			self.move=[]
+			for i,m in enumerate(self.moves):
+				self.move.append(copy.deepcopy(m))
+				self.moveButton.append(tk.Button(self,text=self.move[i].getDescription(),command=lambda index=i:self.shift(self.gm.force(self.move[index].getGameTreePromise()))))
+				self.moveButton[i].place(relx=i/len(self.moves),rely=0.9,relwidth=1/len(self.moves),relheight=0.1)
+				pass
 		pass
 	def forgetAllArea(self):
 		self.leftLifeArea.place_forget()
