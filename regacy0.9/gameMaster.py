@@ -8,10 +8,14 @@ import cardInformation as CI
 import gameTree as gt
 import move
 import copy 
+import json
 class gameMaster(object):
 	"""docstring for gameMaster"""
 	def __init__(self,_cardLists):
 		super(gameMaster, self).__init__()
+		self.f=open("./data/rule.json",'r')
+		self.rule=json.load(self.f)
+		self.f.close()
 		self.leftCardList=_cardLists[0]
 		self.rightCardList=_cardLists[1]
 		self.nextPhaseDict={
@@ -21,16 +25,20 @@ class gameMaster(object):
 		"end":"init"
 		}
 		self.mainAction=[
-		"play a card","activate skill","attack by creature"
+		"play a card","activate a skill","attack by creature"
 		]
-		self.manaLimit=5
-		self.boardLimit=3
+		self.manaLimit=self.rule["mana_max"]
+		self.boardLimit=self.rule["board_max"]
+		self.initialLife=self.rule["initial_life"]
+		self.initialHand=self.rule["initial_hand"]
 	def cloneWorld(self,_world):
 		self.newWorld=copy.deepcopy(_world)
 		return self.newWorld
 		pass
 	def createInitialWorld(self,_leftCardList,_rightCardList,_manaLimit,_boardLimit):
 		self.retWorld=w.world(_leftCardList,_rightCardList,_manaLimit,_boardLimit)
+		self.retWorld.dealCardsX(self.initialHand)
+		self.retWorld.dealCardsToOpponentX(self.initialHand+1)
 		return self.retWorld
 		pass
 	def developInitialGameTree(self):
@@ -60,26 +68,27 @@ class gameMaster(object):
 		pass
 	def listPossibleMovesByRules(self,_world,_state):
 		#フェイズも記録した方がよさげ―
-		def shiftNextPhase():
-			self.wn=self.cloneWorld(_world)
+		def shiftNextPhase(_w):
+			self.wn=self.cloneWorld(_w)
 			return self.makeGameTree(self.wn,_state={"phase":self.nextPhaseDict[_state["phase"]]})
 			pass
-		def doNothing():
-			self.wn=self.cloneWorld(_world)
+		def doNothing(_w):
+			self.wn=self.cloneWorld(_w)
 			return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
 			pass
 		self.retMoves=move.move()
 		if _state["phase"]=="gameSet":
-			def inner():
+			def inner(_w):
 				self.wn=self.createInitialWorld(self.leftCardList,self.rightCardList,self.manaLimit,self.boardLimit)
 				return self.makeGameTree(self.wn,_state={"phase":"init"})
 				pass
 			self.retMoves.setDescription("reset game")
-			self.retMoves.setGameTreePromise(self.delay(inner))
+			self.retMoves.setGameTreePromise(self.delay(inner,_world))
+			self.retMoves.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
 			return [self.retMoves]
 			pass
 		if self.isGameEnded(_world):
-			def inner():
+			def inner(_w):
 				self.wn=self.createInitialWorld(self.leftCardList,self.rightCardList,self.manaLimit,self.boardLimit)
 				return self.makeGameTree(self.wn,_state={"phase":"gameSet"})
 				pass
@@ -87,14 +96,15 @@ class gameMaster(object):
 			if self.getWinnerIndex(_world)==1:
 				self.winner="RIGHT"
 				pass
-			self.retMoves.setDescription("game set. winner is {_winner}".format(_winner=self.winner))
-			self.retMoves.setGameTreePromise(self.delay(inner))
+			self.retMoves.setDescription("game set. winner is {_winner}, reset game.".format(_winner=self.winner))
+			self.retMoves.setGameTreePromise(None)
+			self.retMoves.setSimulateTree(None)
 			return [self.retMoves]
 		if _state["phase"]=="init":
 			self.retMoves.setDescription("untap, upkeep")
-			def inner():
+			def inner(_w):
 				#untap and upkeep.
-				self.wn=self.cloneWorld()
+				self.wn=self.cloneWorld(_w)
 				self.wn.untapTurnPlayerCreatures()
 				if self.wn.getTurnPlayer().getMaxMana()<self.manaLimit:
 					self.wn.expandTurnPlayerMana()
@@ -102,142 +112,197 @@ class gameMaster(object):
 				self.wn.recoverTurnPlayerMana()
 				return self.makeGameTree(self.wn,_state={"phase":self.nextPhaseDict[_state["phase"]]})
 				pass
-			self.retMoves.setGameTreePromise(self.delay(inner))
+			self.retMoves.setGameTreePromise(self.delay(inner,_world))
+			self.retMoves.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
 
 			return [self.retMoves]
 			pass
 		if _state["phase"]=="draw":
 			self.retMoves.setDescription("draw a card.")
-			def inner():
+			def inner(_w):
 				self.wn=self.cloneWorld(_w)
 				self.wn.dealCardsX(1)
 				return self.makeGameTree(self.wn,_state={"phase":self.nextPhaseDict[_state["phase"]]})
-			self.retMoves.setGameTreePromise(self.delay(inner))
+			self.retMoves.setGameTreePromise(self.delay(inner,_world))
+			self.retMoves.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
 			return [self.retMoves]
 			pass
 		if _state["phase"]=="main" :
 			if not ("opt" in _state.keys()):
 				def getBasicMoves(_opt):
-					def inner():
-						self.wn=self.cloneWorld(_world)
+					def inner(_w):
+						self.wn=self.cloneWorld(_w)
 						self.optState=_opt.split(" ")[0]
 						return self.makeGameTree(self.wn,_state={"phase":_state["phase"],"opt":self.optState})
 						pass
 					self.m=move.move()
 					self.m.setDescription(_opt)
-					self.m.setGameTreePromise(self.delay(inner))
+					self.m.setGameTreePromise(self.delay(inner,_world))
+					self.m.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
 					return self.m
 					pass
-				self.retMoves=list(map(getBasicMoves,self.mainAction))
+				def canPayCosts(_card,_skill):
+					if not(_skill["cost"]["tap"]) or not (_card.isStand()):
+						return False
+					if _skill["cost"]["mana"]>_world.getTurnPlayer().getCurrentMana():
+						return False
+					if _skill["cost"]["discard"]>_world.getTurnPlayerHand().getNumOfElements():
+						return False
+					if _skill["cost"]["sacrifice"]>_world.getTurnPlayerBoard().getNumOfElements():
+						return False
+						pass
+					return True
+				def hasActivatableSkill(_card):
+					self.skill=_card.getSkillsByType("activate")
+					return len(list(filter(lambda s:canPayCosts(_card,s),self.skill)))>0
+					pass
+				def isPlayableAction(_opt):
+					if _opt.split(" ")[0]=="play":
+						self.isFullBoard=_world.getTurnPlayerBoard().isBoardFull()
+						self.turnPlayerHand=_world.getTurnPlayerHand().getElements()
+						self.currentMana=_world.getTurnPlayer().getCurrentMana()
+						self.playableHand=list(filter(lambda item:CI.card(item).getCurrentCost()<=self.currentMana,self.turnPlayerHand))
+						return len(self.playableHand)>0 and not(self.isFullBoard)
+						pass
+					if _opt.split(" ")[0]=="activate":
+						self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
+						self.skiilCreatures=list(filter(lambda item:item.hasSkillsByType("activate"),self.turnPlayerBoard))
+						self.activatableCreatures=list(filter(hasActivatableSkill,self.skiilCreatures))
+						return len(self.activatableCreatures)>0
+						pass
+					if _opt.split(" ")[0]=="attack" :
+						self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
+						return len(list(filter(lambda item:item.isStand(),self.turnPlayerBoard)))>0
+						pass
+					return False
+					pass
+				self.playableActions=list(filter(isPlayableAction,self.mainAction))
+				self.retMoves=list(map(getBasicMoves,self.playableActions))
 				self.additionalMove=move.move()
 				self.additionalMove.setDescription("do nothing.")
-				self.additionalMove.setGameTreePromise(self.delay(shiftNextPhase))
+				self.additionalMove.setGameTreePromise(self.delay(shiftNextPhase,_world))
+				self.additionalMove.setSimulateTree(self.delay(shiftNextPhase,w.visibleWorld(_world)))
 				self.retMoves.append(self.additionalMove)
 				return self.retMoves
 				pass
 			if _state["opt"]=="play":
 				def playCard(playingCardTuple):
-					def inner():
-						self.wn=self.cloneWorld(_world)
+					def inner(_w):
+						self.wn=self.cloneWorld(_w)
 						return self.makeGameTree(self.wn,_state={"phase":_state["phase"],"opt":_state["opt"],"playingCardTuple":playingCardTuple})
 						pass
 					self.m=move.move()
 					self.m.setDescription("play "+str(playingCardTuple[1]))
-					self.m.setGameTreePromise(self.delay(inner))
+					self.m.setGameTreePromise(self.delay(inner,_world))
+					self.m.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
 					return self.m
 					pass
 				self.turnPlayerHand=_world.getTurnPlayerHand().getElements()
 				self.retMoves=[]
 				if _world.getTurnPlayerBoard().getNumOfElements()<self.boardLimit:
 					self.currentMana=_world.getTurnPlayer().getCurrentMana()
-					self.playableHand=list(filter(lambda item:CI.card(item).getCurrentCost()<=self.currentMana,self.turnPlayerHand))
-					self.retMoves=list(map(playCard,list(enumerate(self.playableHand))))
+					self.playableHand=list(filter(lambda item:CI.card(item[1]).getCurrentCost()<=self.currentMana,enumerate(self.turnPlayerHand)))
+					self.retMoves=list(map(playCard,list(self.playableHand)))
 					pass
-				self.additionalMove=move.move()
-				self.additionalMove.setDescription("don't play any card.")
-				self.additionalMove.setGameTreePromise(self.delay(doNothing))
-				self.retMoves.append(self.additionalMove)
+				"""
+								self.additionalMove=move.move()
+								self.additionalMove.setDescription("don't play any card.")
+								self.additionalMove.setGameTreePromise(self.delay(doNothing,_world))
+								self.additionalMove.setSimulateTree(self.delay(doNothing,w.visibleWorld(_world)))
+								self.retMoves.append(self.additionalMove)
+				"""
 				return self.retMoves
 				pass
 
 			if _state["opt"]=="activate":
 				def activateSkill(_actionCardTuple):
-					def inner():
-						self.wn=self.cloneWorld(_world)
+					def inner(_w):
+						self.wn=self.cloneWorld(_w)
 						return self.makeGameTree(self.wn,_state={"phase":_state["phase"],"opt":_state["opt"] ,"playingCardTuple":_actionCardTuple})
 						pass
+
 					self.m=move.move()
 					self.m.setDescription("activate {card}'s skill".format(card=str(_actionCardTuple[1])))
-					self.m.setGameTreePromise(self.delay(inner))
+					self.m.setGameTreePromise(self.delay(inner,_world))
+					self.m.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
 					return self.m
 					pass
 				self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
 				self.actionableUnit=list(filter(lambda item:item.hasSkillsByType("activate"),self.turnPlayerBoard))
 				self.retMoves=list(map(activateSkill,list(enumerate(self.actionableUnit))))
+				"""
 				self.additionalMove=move.move()
 				self.additionalMove.setDescription("no skill activate")
-				self.additionalMove.setGameTreePromise(self.delay(doNothing))
+				self.additionalMove.setGameTreePromise(self.delay(doNothing,_world))
+				self.additionalMove.setSimulateTree(self.delay(doNothing,_world))
 				self.retMoves.append(self.additionalMove)
+				"""
 				return self.retMoves
 				pass
 			if _state["opt"]=="attack":
 				def attackByCreature(_attackCardTuple):
-					def inner():
-						self.wn=self.cloneWorld(_world)
+					def inner(_w):
+						self.wn=self.cloneWorld(_w)
 						return self.makeGameTree(self.wn,_state={"phase":_state["phase"],"opt":_state["opt"],"playingCardTuple":_attackCardTuple})
 						pass
 					self.m=move.move()
 					self.m.setDescription("attack by {card}".format(card=str(_attackCardTuple[1])))
-					self.m.setGameTreePromise(self.delay(inner))
+					self.m.setGameTreePromise(self.delay(inner,_world))
+					self.m.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
 					return self.m
-				def noAction():
-					self.wn=self.cloneWorld(_world)
+				def noAction(_w):
+					self.wn=self.cloneWorld(_w)
 					return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
 					pass
 				self.retMoves=[]
 				self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
-				self.attackableUnit=list(filter(lambda item:item.isStand(),self.turnPlayerBoard))
-				self.retMoves=list(map(attackByCreature,list(enumerate(self.attackableUnit))))
+				self.attackableUnitTuple=list(filter(lambda item:item[1].isStand(),enumerate(self.turnPlayerBoard)))
+				self.retMoves=list(map(attackByCreature,list(self.attackableUnitTuple)))
+				"""
 				self.additionalMove=move.move()
 				self.additionalMove.setDescription("no unit action")
-				self.additionalMove.setGameTreePromise(self.delay(noAction))
+				self.additionalMove.setGameTreePromise(self.delay(noAction,_world))
+				self.additionalMove.setSimulateTree(self.delay(noAction,w.visibleWorld(_world)))
 				self.retMoves.append(self.additionalMove)
+				"""
 				return self.retMoves
 				pass
 		if _state["phase"]=="end":
 			self.retMoves.setDescription("end your turn.")
-			def inner():
-				self.wn=self.cloneWorld(_world)
+			def inner(_w):
+				self.wn=self.cloneWorld(_w)
 				self.wn.shiftNextTurn()
 				return self.makeGameTree(self.wn,_state={"phase":self.nextPhaseDict[_state["phase"]]})
 				pass
-			self.retMoves.setGameTreePromise(self.delay(inner))
+			self.retMoves.setGameTreePromise(self.delay(inner,_world))
+			self.retMoves.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
+			#終了時の処理は迷いマイマイ
 			return [self.retMoves]
 			pass
 		pass
 	def listPossibleMovesByCards(self,_world,_state):
 		self.retMoves=move.move()
-		def doNothing():
-			self.wn=self.cloneWorld(_world)
+		def doNothing(_w):
+			self.wn=self.cloneWorld(_w)
 			return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
 			pass
 		if _state["phase"]=="init":
 			self.retMoves.setDescription("untap, upkeep")
-			def inner():
+			def inner(_w):
 				#untap and upkeep. 
-				self.wn=self.cloneWorld(_world)
+				self.wn=self.cloneWorld(_w)
 				return self.makeGameTree(self.wn,{"phase":self.nextPhaseDict[_state["phase"]]})
 				pass
-			self.retMoves.setGameTreePromise(self.delay(inner))
+			self.retMoves.setGameTreePromise(self.delay(inner,_world))
 			return [self.retMoves]
 		if _state["phase"]=="draw":
 			self.retMoves.setDescription("untap, upkeep")
-			def inner():
+			def inner(_w):
 				#untap and upkeep. 
-				self.wn=self.cloneWorld(_world)
+				self.wn=self.cloneWorld(_w)
 				return self.makeGameTree(self.wn,{"phase":self.nextPhaseDict[_state["phase"]]})
 				pass
-			self.retMoves.setGameTreePromise(self.delay(inner))
+			self.retMoves.setGameTreePromise(self.delay(inner,_world))
 			return [self.retMoves]
 		if _state["phase"]=="main":
 			if _state["opt"]=="play":
@@ -250,10 +315,10 @@ class gameMaster(object):
 							pass
 						if _state["playingCardTuple"][1].hasSkillsByType("cip"):
 							#cip-->召喚時
-							def solveCip():
+							def solveCip(_w):
 								#cipを定義していく。
 								#複数cipを持っていて、選択の余地がある場合に困っている
-								self.wn=self.cloneWorld(_world)
+								self.wn=self.cloneWorld(_w)
 								self.cip=_state["playingCardTuple"][1].getSkillNamesByType("cip")
 								self.objectCreature=self.wn.getTurnPlayerBoard().getElements()[-1]
 								if "haste" in self.cip:
@@ -265,25 +330,26 @@ class gameMaster(object):
 								pass
 								return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
 							self.retMoves.setDescription("solve cip.")
-							self.retMoves.setGameTreePromise(self.delay(solveCip))
+							self.retMoves.setGameTreePromise(self.delay(solveCip,_world))
 							return [self.retMoves]
 							pass
 						else:
 							pass
 							self.retMoves.setDescription("nothing happened.")
-							self.retMoves.setGameTreePromise(self.delay(doNothing))
+							self.retMoves.setGameTreePromise(self.delay(doNothing,_world))
+							self.retMoves.setSimulateTree(self.delay(doNothing,w.visibleWorld(_world)))
 							return [self.retMoves]
 					else:
-						def inner():
+						def inner(_w):
 							#playingCardを盤面に加える 
-							self.wn=self.cloneWorld(_world)
+							self.wn=self.cloneWorld(_w)
 							self.playedCard=self.wn.getTurnPlayerHand().getElements().pop(_state["playingCardTuple"][0])
 							self.wn.addTurnPlayerBoard(self.makeCreature(self.playedCard))
 							self.wn.getTurnPlayer().consumeMana(self.playedCard.getCurrentCost())
 							return self.makeGameTree(self.wn,_state={"phase":_state["phase"],"opt":_state["opt"],"playingCardTuple":_state["playingCardTuple"],"step":"solveEffect"})
 							pass
 						self.retMoves.setDescription("solve playing {card}".format(card=_state["playingCardTuple"][1]))
-						self.retMoves.setGameTreePromise(self.delay(inner))
+						self.retMoves.setGameTreePromise(self.delay(inner,_world))
 						return [self.retMoves]
 						pass
 				if _state["playingCardTuple"].getMainCardType()=="land":
@@ -296,30 +362,30 @@ class gameMaster(object):
 					if _state["activateSkill"]["name"]=="looter":
 						if _state["step"]=="discard":
 							def chooseDiscard(_handTuple):
-								def inner():
-									self.wn=self.cloneWorld(_world)
-									self.disCardObject=self.wn.getTurnPlayerHand().getElements().pop(_handTuple[0])
+								def inner(_w):
+									self.wn=self.cloneWorld(_w)
+									self.wn.discardX(_handTuple[0])
 									return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
 									pass
 								pass
 								self.m=move.move()
 								self.m.setDescription("discard {card}.".format(card=str(_handTuple[1])))
-								self.m.setGameTreePromise(self.delay(inner))
+								self.m.setGameTreePromise(self.delay(inner,_world))
 								return self.m
 							self.turnPlayerHand=_world.getTurnPlayerHand().getElements()
 							self.retMoves=list(map(chooseDiscard,enumerate(self.turnPlayerHand)))
 							return self.retMoves
 							pass
 						if _state["step"]=="paid":
-							def inner():
-								self.wn=self.cloneWorld(_world)
+							def inner(_w):
+								self.wn=self.cloneWorld(_w)
 								self.wn.dealCardsX(1)
 								self.argState=_state
 								self.argState["step"]="discard"
 								return self.makeGameTree(self.wn,_state=self.argState)
 								pass
 							self.retMoves.setDescription("draw a card.")
-							self.retMoves.setGameTreePromise(self.delay(inner))
+							self.retMoves.setGameTreePromise(self.delay(inner,_world))
 							return [self.retMoves]
 				if "activateSkill" in _state.keys():
 					def canPayCosts(_skill):
@@ -334,53 +400,51 @@ class gameMaster(object):
 							pass
 						return True
 						pass
-					if canPayCosts(_state["activateSkill"]):
-						def activateSkill():
-							self.wn=self.cloneWorld(_world)
-							if _state["activateSkill"]["cost"]["tap"]:
-								#起動しているクリーチャー情報が欲しいからタプルにする必要あるかも
-								self.wn.getTurnPlayerBoard().getElements()[_state["playingCardTuple"][0]].tapThisCreature()
-								pass
-							return self.makeGameTree(self.wn,_state={"phase":_state["phase"],"opt":_state["opt"],"playingCardTuple":_state["playingCardTuple"],"activateSkill":_state["activateSkill"],"step":"paid"})	
+					def activateSkill(_w):
+						self.wn=self.cloneWorld(_w)
+						if _state["activateSkill"]["cost"]["tap"]:
+							#起動しているクリーチャー情報が欲しいからタプルにする必要あるかも
+							self.wn.getTurnPlayerBoard().getElements()[_state["playingCardTuple"][0]].tapThisCreature()
 							pass
-						self.retMoves=[]
-						self.activateMove=move.move()
-						self.activateMove.setDescription("pay {skillCost}".format(skillCost=_state["playingCardTuple"][1].skillCostToString(_state["activateSkill"]["cost"])))
-						self.activateMove.setGameTreePromise(self.delay(activateSkill))
-						self.retMoves.append(self.activateMove)
-						self.additionalMove.setDescription("refuse paying cost.")
-						self.additionalMove.setGameTreePromise(self.delay(doNothing))
-						self.retMoves.append(self.additionalMove)
-						return self.retMoves
-					else:
-						self.retMoves.setDescription("can't pay cost.")
-						self.retMoves.setGameTreePromise(self.delay(doNothing))
-						return [self.retMoves]
-					pass
-
+						return self.makeGameTree(self.wn,_state={"phase":_state["phase"],"opt":_state["opt"],"playingCardTuple":_state["playingCardTuple"],"activateSkill":_state["activateSkill"],"step":"paid"})
+						pass
+					self.retMoves=[]
+					self.activateMove=move.move()
+					self.activateMove.setDescription("pay {skillCost}".format(skillCost=_state["playingCardTuple"][1].skillCostToString(_state["activateSkill"]["cost"])))
+					self.activateMove.setGameTreePromise(self.delay(activateSkill,_world))
+					self.activateMove.setSimulateTree(self.delay(activateSkill,w.visibleWorld(_world)))
+					self.retMoves.append(self.activateMove)
+					"""
+					self.additionalMove.setDescription("refuse paying cost.")
+					self.additionalMove.setGameTreePromise(self.delay(doNothing,_world))
+					self.retMoves.append(self.additionalMove)
+					"""
+					return self.retMoves
 				else:
 					self.skills=_state["playingCardTuple"][1].getSkillsByType("activate")
 					def activateSkill(_skill):
-						def inner():
-							self.wn=self.cloneWorld(_world)
-							print(_skill)
+						def inner(_w):
+							self.wn=self.cloneWorld(_w)
 							return self.makeGameTree(self.wn,{"phase":_state["phase"],"opt":_state["opt"],"playingCardTuple":_state["playingCardTuple"],"activateSkill":_skill})
 							pass
 						self.m=move.move()
 						self.m.setDescription("activate {_skill}".format(_skill=_skill["name"]))
-						self.m.setGameTreePromise(self.delay(inner))
+						self.m.setGameTreePromise(self.delay(inner,_world))
+						self.m.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
 						return self.m
 						pass
 					self.retMoves=list(map(activateSkill,self.skills))
+					"""
 					self.additionalMove=move.move()
 					self.additionalMove.setDescription("activate no skill.")
-					self.additionalMove.setGameTreePromise(self.delay(doNothing))
+					self.additionalMove.setGameTreePromise(self.delay(doNothing,_world))
+					"""
 					return self.retMoves
 					pass
 			if _state["opt"]=="attack":
 				def decideAttackObject(_defenseCreatureTuple):
-					def inner():
-						self.wn=self.cloneWorld(_world)
+					def inner(_w):
+						self.wn=self.cloneWorld(_w)
 						self.tb=self.wn.getTurnPlayerBoard().getElements()
 						self.ob=self.wn.getOpponentPlayerBoard().getElements()
 						self.attackCard=self.tb[_state["playingCardTuple"][0]]
@@ -395,11 +459,12 @@ class gameMaster(object):
 						_attackCard.tapThisCreature()
 					self.m=move.move()
 					self.m.setDescription("attack to {card}".format(card=str(_defenseCreatureTuple[1])))
-					self.m.setGameTreePromise(self.delay(inner))
+					self.m.setGameTreePromise(self.delay(inner,_world))
+					self.m.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
 					return self.m
-				def bodyAttack():
-					self.wn=self.cloneWorld(_world)
-					self.tb=self.wn.getPlayerBoard(self.wn.getTurnPlayerIndex()).getElements()
+				def bodyAttack(_w):
+					self.wn=self.cloneWorld(_w)
+					self.tb=self.wn.getTurnPlayerBoard().getElements()
 					self.attackCard=self.tb[_state["playingCardTuple"][0]]
 					self.op=self.wn.getOpponentPlayer()
 					self.op.dealDamage(self.attackCard.getCurrentPower())
@@ -410,19 +475,22 @@ class gameMaster(object):
 				self.retMoves=list(map(decideAttackObject,list(enumerate(self.opponentBoard.getElements()))))
 				self.additionalMove=move.move()
 				self.additionalMove.setDescription("attack body")
-				self.additionalMove.setGameTreePromise(self.delay(bodyAttack))
+				self.additionalMove.setGameTreePromise(self.delay(bodyAttack,_world))
+				self.additionalMove.setSimulateTree(self.delay(bodyAttack,w.visibleWorld(_world)))
 				self.retMoves.append(self.additionalMove)
 				return self.retMoves
 				pass
 		if _state["phase"]=="end":
 			self.retMoves.setDescription("untap, upkeep")
-			def inner():
+			def inner(_w):
 				#untap and upkeep. 
-				self.wn=self.cloneWorld(_world)
+				self.wn=self.cloneWorld(_w)
 				self.wn.shiftNextTurn()
 				return self.makeGameTree(self.wn,{"phase":self.nextPhaseDict[_state["phase"]]})
 				pass
-			self.retMoves.setGameTreePromise(self.delay(inner))
+			self.retMoves.setGameTreePromise(self.delay(inner,_world))
+			self.retMoves.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
+			#終了時の処理をどうするかは迷いマイマイ
 			return [self.retMoves]
 			pass
 		pass

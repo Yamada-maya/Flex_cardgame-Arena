@@ -18,8 +18,8 @@ class playerStatus(object):
 	def setLife(self,num):
 		self.LIFE=num
 		pass
-	def dealDamage(self,_damge):
-		self.LIFE-=_damge
+	def dealDamage(self,_damage):
+		self.LIFE-=_damage
 		pass
 	def getMaxMana(self):
 		return self.maxMana
@@ -53,6 +53,22 @@ class factor(object):
 	def deleteAllElements(self):
 		self.elements=[]
 		pass
+	def fillByDummyCards(self,_n):
+		self.dummyCard={
+		"cardName": "dummy",
+		"baseCost": 0,
+		"baseToughness": 1,
+		"basePower": 1,
+		"cardType": {
+			"main": "",
+			"sub": [	]
+			},
+		"skills": {}
+		}
+		for i in range(_n):
+			self.addElements(self.dummyCard)
+			pass
+		pass
 	pass
 
 class hand(factor):
@@ -66,9 +82,13 @@ class board(factor):
 	creature と land とかに分けておいた方がいいか…？"""
 	def __init__(self,_boardLimit):
 		super(board, self).__init__()
+		self.boardLimit=_boardLimit
 		self.attackBonus=[0 for i in range(_boardLimit)]
 		self.toughnessBonus=[0 for i in range(_boardLimit)]
 		self.skillBonus=[0 for i in range(_boardLimit)]
+	def isBoardFull(self):
+		return self.getNumOfElements() >=self.boardLimit
+		pass
 
 class grave(factor):
 	"""docstring for grave"""

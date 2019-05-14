@@ -11,9 +11,13 @@ class deckBuilder(tk.Frame):
 		self.f = open('data/cardInformation.json', 'r')
 		self.cardList=json.load(self.f)
 		self.f.close()
+		self.f=open('data/rule.json', 'r')
+		self.rule=json.load(self.f)
+		print(self.rule)
+		self.f.close()
 		self.index=0
-		self.cardLimit=2
-		self.deckMin=4
+		self.cardLimit=self.rule["max_per_card"]
+		self.deckMin=self.rule["deck_min"]
 		self.isDeckBuilt=False
 		self.deckList=[]
 		self.numOrganizer=[0 for i in range(len(self.cardList))]
@@ -24,7 +28,6 @@ class deckBuilder(tk.Frame):
 			for i,item in enumerate(self.numOrganizer):
 				for x in range(item):
 					self.appendCard=copy.deepcopy(self.cardList[i])
-					print(self.appendCard)
 					self.deckList.append(self.appendCard)
 					pass
 				pass
@@ -76,8 +79,8 @@ class deckBuilder(tk.Frame):
 		self.leftFocusedCard=tk.Label(self,text=self.cardInfoToStr(self.cardList[(self.index-1)%len(self.cardList)]))
 		self.focusedCard=tk.Label(self,text=self.cardInfoToStr(self.cardList[self.index%len(self.cardList)]))
 		self.rightFocusedCard=tk.Label(self,text=self.cardInfoToStr(self.cardList[(self.index+1)%len(self.cardList)]))
-		self.leftShiftButton=tk.Button(self,text="shift to previous card",command=lambda state="shiftLeft":self.commanded(state))
-		self.rightShiftButton=tk.Button(self,text="shift to next card",command=lambda state="shiftRight":self.commanded(state))
+		self.leftShiftButton=tk.Button(self,text="shift to\nprevious card",command=lambda state="shiftLeft":self.commanded(state))
+		self.rightShiftButton=tk.Button(self,text="shift to\nnext card",command=lambda state="shiftRight":self.commanded(state))
 		self.adoptButton=tk.Button(self,text="adopt this card",command=lambda state="adopt":self.commanded(state))
 		self.denyButton=tk.Button(self,text="deny this card",command=lambda state="deny":self.commanded(state))
 		self.decideDeckButton=tk.Button(self,text="decide your deck",command=lambda state="finish":self.commanded(state))
