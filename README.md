@@ -5,7 +5,8 @@
 - Sure! 
 - There are a lot to do.
 ### Project structure
-'''
+
+```
 ver_alpha
 ├── brain.py // Shared code between 'app' and 'game' modules.
 ├── cardInformation.py
@@ -16,4 +17,4 @@ ver_alpha
 ├── move.py
 ├── playerAttributes.py
 └── data  // Cards, rule data are included.
-'''
+```
