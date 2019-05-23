@@ -8,10 +8,10 @@
 
 ```
 ver_alpha
-├── brain.py // Shared code between 'app' and 'game' modules.
+├── brain.py // This file includes agents' brain. You can develop original agents by inheritting "baseBrain" class .
 ├── cardInformation.py
 ├── deckBuilder.py
-├── gameMaster.py   // Game source code. Depends on 'shared' module.
+├── gameMaster.py   // Game source code.
 ├── gameTree.py
 ├── main.py    // Application UI code and organize.
 ├── move.py
