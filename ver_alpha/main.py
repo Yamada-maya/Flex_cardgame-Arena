@@ -21,11 +21,12 @@ class Application(tk.Frame):
 	def __init__(self, master=None,_deckListL=[],_deckListR=[]):
 		tk.Frame.__init__(self, master,width=640,height=480)
 		self.pack()
+		self.moveButton=[]
 		self.agents=[human(),brain.randomBrain()]
 		self.gm=gm.gameMaster([_deckListL,_deckListR])
 		self.tree=self.gm.developInitialGameTree()
 		self.visualizeFirstNode(self.tree.getWorld())
-		self.setUpUI(self.tree)
+		self.after(100,lambda:self.shift(self.tree))
 
 	def shift(self,_gameTree):
 		self.visualizeMatchFromNode(_gameTree.getWorld())
@@ -33,7 +34,9 @@ class Application(tk.Frame):
 			self.setUpUI(_gameTree)
 			pass
 		else:
-			self.chooseMoveByAI(_gameTree,self.agents[_gameTree.getWorld().getTurnPlayerIndex()])
+			self.command=self.chooseMoveByAI(_gameTree,self.agents[_gameTree.getWorld().getTurnPlayerIndex()])
+			self.moves=_gameTree.getMoves()
+			self.after(500,lambda:self.shift(self.gm.force(self.moves[self.command["index"]].getGameTreePromise())))
 		pass
 	def chooseMoveByAI(self,_gameTree,_agent):
 		t.sleep(0.1)
@@ -47,15 +50,13 @@ class Application(tk.Frame):
 			pass
 		self.moves=_gameTree.getMoves()
 		if len(self.moves)==1:
-			print(self.moves[0].getDescription())
-			self.shift(self.gm.force(self.moves[0].getGameTreePromise()))
-			return
+			self.retMove=fetchSimulationTrees((0,self.moves[0]))
+			return self.retMove
 		self.visibleWorld=w.visibleWorld(_gameTree.getWorld())
 		self.simulationTrees=list(map(fetchSimulationTrees,enumerate(self.moves)))
 		#agentに選んでもらう
 		self.m=_agent.chooseBestMove(self.visibleWorld,self.simulationTrees)
-		self.shift(self.gm.force(self.moves[self.m["index"]].getGameTreePromise()))
-		return 
+		return self.m
 		pass
 	def visualizeFirstNode(self,_world):
 		self.leftUnit=[]

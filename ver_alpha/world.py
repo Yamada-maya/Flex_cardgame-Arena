@@ -121,7 +121,7 @@ class world(visibleWorld):
 		self.hands[self.turnPlayer].addElements(CI.card(_card))
 		pass
 	def addOpponentPlayerHand(self,_card):
-		self.hands[self.getOpponentPlayerIndex()]
+		self.hands[self.getOpponentPlayerIndex()].addElements(CI.card(_card))
 		pass
 	def addTurnPlayerBoard(self,_card):
 		self.boards[self.turnPlayer].addElements(CI.creature(_card))
