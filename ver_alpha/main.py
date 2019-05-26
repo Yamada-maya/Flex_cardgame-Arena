@@ -16,18 +16,52 @@ class human(object):
 	"""docstring for human"""
 	def __init__(self):
 		super(human, self).__init__()
+		pass
 		
-class Application(tk.Frame):
-	def __init__(self, master=None,_deckListL=[],_deckListR=[]):
-		tk.Frame.__init__(self, master,width=640,height=480)
-		self.pack()
-		self.moveButton=[]
+class Application(tk.Tk):
+	def __init__(self):
+		tk.Tk.__init__(self)
+		# カード情報やルールのインポート
+		self.f = open('data/cardInformation.json', 'r')
+		self.cardList=json.load(self.f)
+		self.f.close()
+		self.f=open('data/rule.json', 'r')
+		self.rule=json.load(self.f)
+		self.f.close()
+		# ここまで
+		self.geometry("800x600")
+		self.grid_rowconfigure(0, weight=1)
+		self.grid_columnconfigure(0, weight=1)
+		self.deckEditFrame=db.deckBuilder(self.cardList,self.rule,master=self)
+		#self.battleFrame=tk.Frame(self)
+		#self.battleFrame.place(relx=0,rely=0,relwidth=1,relheight=1)
+		self.deckEditFrame.tkraise()
 		self.agents=[human(),brain.randomBrain()]
-		self.gm=gm.gameMaster([_deckListL,_deckListR])
+		self.rightDeck=self.agents[1].developOwnDeck(self.cardList,self.rule)
+		if isinstance(self.agents[0],human):
+			self.createDeckEditWindow()
+		else:
+			self.leftDeck=self.agents[0].developOwnDeck(self.cardList,self.rule)
+			self.changeBattlePage()
+
+	def createDeckEditWindow(self):
+		self.deckEditFrame.place(relx=0,rely=0,relwidth=1,relheight=1)
+		pass
+	def createConfirmWindow(self):
+		self.leftDeck=self.deckEditFrame.getDeckList()
+		self.confirmFrame=tk.Frame(self)
+		self.confirmFrame.place(relx=0,rely=0,relwidth=1,relheight=1)
+		self.confirmButton=tk.Button(self.confirmFrame,text="start game",command=self.changeBattlePage)
+		self.confirmButton.place(relx=0.5,rely=0.5,relwidth=0.5,relheight=0.5)
+		pass
+	def changeBattlePage(self):
+		self.confirmFrame.place_forget()
+		self.moveButton=[]
+		self.gm=gm.gameMaster([self.leftDeck,self.rightDeck])
 		self.tree=self.gm.developInitialGameTree()
 		self.visualizeFirstNode(self.tree.getWorld())
 		self.after(100,lambda:self.shift(self.tree))
-
+		pass
 	def shift(self,_gameTree):
 		self.visualizeMatchFromNode(_gameTree.getWorld())
 		if isinstance(self.agents[_gameTree.getWorld().getTurnPlayerIndex()],human):
@@ -173,10 +207,12 @@ class Application(tk.Frame):
 			item.place_forget()
 		pass
 if __name__ == '__main__':
-	dbRoot=tk.Tk()
-	deckWindow=db.deckBuilder(master=dbRoot)
-	deckWindow.mainloop()
-	deck=deckWindow.getDeckList()
-	gameRoot = tk.Tk()
-	app = Application(master=gameRoot,_deckListL=deck,_deckListR=deck)
+	app=Application()
 	app.mainloop()
+	#dbRoot=tk.Tk()
+	#deckWindow=db.deckBuilder(master=dbRoot)
+	#deckWindow.mainloop()
+	#deck=deckWindow.getDeckList()
+	#gameRoot = tk.Tk()
+	#app = Application(master=gameRoot,_deckListL=deck,_deckListR=deck)
+	#app.mainloop()

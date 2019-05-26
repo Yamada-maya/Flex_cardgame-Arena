@@ -18,3 +18,10 @@ ver_alpha
 ├── playerAttributes.py
 └── data  // Cards, rule data are included.
 ```
+
+### How to develop brain.py
+- brain has two roles.
+	- as a builder of decks
+	- as a agent of games
+- We are implementing deck building part.
+- In the game, chooseBestMove function should be implemented to develop original agent. In chooseBestMove function, brain class must return one "move" from "_moveList" ("_moveList" is argment for chooseBestMove function).

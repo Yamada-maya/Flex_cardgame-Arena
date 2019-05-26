@@ -1,3 +1,4 @@
+import copy
 import random
 class baseBrain(object):
 	"""docstring for baseBrain"""
@@ -9,6 +10,14 @@ class baseBrain(object):
 		#_moveList=[move,move,move,...,move]
 		#move is composed of,"index", "description", and "tree".
 		return _moveList[0]
+		pass
+	def developOwnDeck(self,_cardList,_ruleList):
+		self.retList=[]
+		for item in _cardList:
+			self.retList.append(copy.deepcopy(item))
+			self.retList.append(copy.deepcopy(item))
+			pass
+		return self.retList
 		pass
 class randomBrain(baseBrain):
 	"""docstring for randomBrain"""

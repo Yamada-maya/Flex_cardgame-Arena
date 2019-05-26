@@ -4,17 +4,11 @@ import copy
 #デッキビルドAIをここに組み込むか。
 class deckBuilder(tk.Frame):
 	"""docstring for deckBuilder"""
-	def __init__(self,master=None):
+	def __init__(self,_cardList,_rule,master=None):
 		tk.Frame.__init__(self,master,width=640,height=480)
 		self.master=master
-		self.pack()
-		self.f = open('data/cardInformation.json', 'r')
-		self.cardList=json.load(self.f)
-		self.f.close()
-		self.f=open('data/rule.json', 'r')
-		self.rule=json.load(self.f)
-		print(self.rule)
-		self.f.close()
+		self.cardList=_cardList
+		self.rule=_rule
 		self.index=0
 		self.cardLimit=self.rule["max_per_card"]
 		self.deckMin=self.rule["deck_min"]
@@ -31,7 +25,8 @@ class deckBuilder(tk.Frame):
 					self.deckList.append(self.appendCard)
 					pass
 				pass
-			self.master.destroy()
+			self.place_forget()
+			self.master.createConfirmWindow()
 			pass
 		pass
 	def getDeckList(self):
