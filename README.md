@@ -25,3 +25,4 @@ ver_alpha
 	- as a agent of games
 - We are implementing deck building part.
 - In the game, chooseBestMove function should be implemented to develop original agent. In chooseBestMove function, brain class must return one "move" from "_moveList" ("_moveList" is argment for chooseBestMove function).
+	- By executing _moveList["tree"], you can get next "gameTree". ( _moveList["tree"]() returns "gameTree" class which includes "move", "world").
