@@ -2,9 +2,11 @@ class move(object):
 	"""docstring for move"""
 	def __init__(self,_description=None,_gameTreePromise=None,_simulationTree=None):
 		super(move, self).__init__()
-		self.description = None
-		self.gameTreePromise=None
-		self.simulationTree=None
+		self.dict={
+			"description":None,
+			"tree":None,
+			"simulationTree":None,
+		}
 		self.setDescription(_description)
 		self.setGameTreePromise(_gameTreePromise)
 		self.setSimulateTree(_simulationTree)
@@ -12,26 +14,26 @@ class move(object):
 		if _description is None:
 			pass
 		else:
-			self.description=_description
+			self.dict["description"]=_description
 		pass
 	def getDescription(self):
-		return self.description
+		return self.dict["description"]
 		pass
 	def setGameTreePromise(self,_gameTreePromise=None):
 		if _gameTreePromise is None:
 			pass
 		else:
-			self.gameTreePromise=_gameTreePromise
+			self.dict["tree"]=_gameTreePromise
 		pass
 	def getGameTreePromise(self):
-		return self.gameTreePromise
+		return self.dict["tree"]
 		pass
 	def setSimulateTree(self,_simulationTree):
 		if _simulationTree is None:
 			pass
 		else:
-			self.simulationTree=_simulationTree
+			self.dict["simulationTree"]=_simulationTree
 		pass
 	def getSimulateTree(self):
-		return self.simulationTree
+		return self.dict["simulationTree"]
 		pass

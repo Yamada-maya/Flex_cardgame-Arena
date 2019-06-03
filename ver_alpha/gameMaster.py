@@ -352,9 +352,9 @@ class gameMaster(object):
 						self.retMoves.setGameTreePromise(self.delay(inner,_world))
 						return [self.retMoves]
 						pass
-				if _state["playingCardTuple"].getMainCardType()=="land":
+				if _state["playingCardTuple"][1].getMainCardType()=="land":
 					pass
-				if _state["playingCardTuple"].getMainCardType()=="sorcery":
+				if _state["playingCardTuple"][1].getMainCardType()=="sorcery":
 					pass
 				pass
 			if _state["opt"]=="activate":

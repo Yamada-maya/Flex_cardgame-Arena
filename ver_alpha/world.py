@@ -71,19 +71,6 @@ class visibleWorld(object):
 		return self.decks[self.getOpponentPlayerIndex()]
 		pass
 		pass
-class world(visibleWorld):
-	"""docstring for world"""
-	def __init__(self,_leftCardList,_rightCardList,_manaLimit=5,_boardLimit=3):
-		super().__init__()
-		self.RIGHT=1
-		self.decks=[PA.deck(_leftCardList),PA.deck(_rightCardList)]
-		self.boards=[PA.board(_boardLimit),PA.board(_boardLimit)]
-		self.players=[PA.playerStatus(_leftCardList,_manaLimit),PA.playerStatus(_rightCardList,_manaLimit)]
-		self.turnPlayer=self.LEFT
-		pass
-	def dumpWorld(self):
-		print("current turn is {turn}, the left player is...".format(turn=self.turnPlayer))
-		pass
 	def dealACardX(self):
 		self.objectPlayerDeck=self.decks[self.getTurnPlayerIndex()]
 		if self.objectPlayerDeck.getNumOfElements()>0:
@@ -198,4 +185,17 @@ class world(visibleWorld):
 		for item in self.newBoard:
 			self.boards[self.getOpponentPlayerIndex()].addElements(item)
 			pass
+		pass
+class world(visibleWorld):
+	"""docstring for world"""
+	def __init__(self,_leftCardList,_rightCardList,_manaLimit=5,_boardLimit=3):
+		super().__init__()
+		self.RIGHT=1
+		self.decks=[PA.deck(_leftCardList),PA.deck(_rightCardList)]
+		self.boards=[PA.board(_boardLimit),PA.board(_boardLimit)]
+		self.players=[PA.playerStatus(_leftCardList,_manaLimit),PA.playerStatus(_rightCardList,_manaLimit)]
+		self.turnPlayer=self.LEFT
+		pass
+	def dumpWorld(self):
+		print("current turn is {turn}, the left player is...".format(turn=self.turnPlayer))
 		pass

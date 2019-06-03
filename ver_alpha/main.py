@@ -8,6 +8,7 @@ import tkinter as tk
 import gameMaster as gm
 import copy
 import deckBuilder as db
+import move
 import brain
 import world as w
 import time as t
@@ -36,12 +37,12 @@ class Application(tk.Tk):
 		#self.battleFrame=tk.Frame(self)
 		#self.battleFrame.place(relx=0,rely=0,relwidth=1,relheight=1)
 		self.deckEditFrame.tkraise()
-		self.agents=[human(),brain.randomBrain()]
-		self.rightDeck=self.agents[1].developOwnDeck(self.cardList,self.rule)
+		self.agents=[human(),brain.ruleBaseBrain()]
+		self.rightDeck=self.agents[1].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
 		if isinstance(self.agents[0],human):
 			self.createDeckEditWindow()
 		else:
-			self.leftDeck=self.agents[0].developOwnDeck(self.cardList,self.rule)
+			self.leftDeck=self.agents[0].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
 			self.changeBattlePage()
 
 	def createDeckEditWindow(self):
@@ -79,7 +80,8 @@ class Application(tk.Tk):
 			self.retDict={
 				"index":_moveTuple[0],
 				"description":_moveTuple[1].getDescription(),
-				"tree":_moveTuple[1].getSimulateTree()}
+				"tree":_moveTuple[1].getSimulateTree()
+				}
 			return self.retDict
 			pass
 		self.moves=_gameTree.getMoves()
@@ -89,7 +91,7 @@ class Application(tk.Tk):
 		self.visibleWorld=w.visibleWorld(_gameTree.getWorld())
 		self.simulationTrees=list(map(fetchSimulationTrees,enumerate(self.moves)))
 		#agentに選んでもらう
-		self.m=_agent.chooseBestMove(self.visibleWorld,self.simulationTrees)
+		self.m=_agent.chooseBestMove(self.visibleWorld,copy.deepcopy(self.simulationTrees))
 		return self.m
 		pass
 	def visualizeFirstNode(self,_world):
