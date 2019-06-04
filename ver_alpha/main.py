@@ -71,7 +71,8 @@ class Application(tk.Tk):
 		else:
 			self.command=self.chooseMoveByAI(_gameTree,self.agents[_gameTree.getWorld().getTurnPlayerIndex()])
 			self.moves=_gameTree.getMoves()
-			self.after(500,lambda:self.shift(self.gm.force(self.moves[self.command["index"]].getGameTreePromise())))
+			print("thinking time....-----------------------")
+			self.after(1000,lambda:self.shift(self.gm.force(self.moves[self.command["index"]].getGameTreePromise())))
 		pass
 	def chooseMoveByAI(self,_gameTree,_agent):
 		t.sleep(0.1)

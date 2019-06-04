@@ -55,6 +55,8 @@ class ruleBaseBrain(baseBrain):
 	def chooseBestMove(self,_world,_moveList):
 		self.index=0
 		self.values=list(map(lambda m:self.getActionValue(_world,m["tree"]),_moveList))
+		print(_moveList)
+		print(self.values)
 		self.index=self.values.index(max(self.values))
 		return _moveList[self.index]
 		pass
@@ -76,7 +78,10 @@ class ruleBaseBrain(baseBrain):
 		self.handValue=_world.getTurnPlayerHand().getNumOfElements()
 		self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
 		self.boardValue=self.calculateBoardValue(self.turnPlayerBoard)
-		return self.handValue+self.boardValue-self.opponentLife/2
+		self.opponentPlayerBoard=_world.getOpponentPlayerBoard().getElements()
+		self.opponentBoardValue=self.calculateBoardValue(self.opponentPlayerBoard)
+		self.currentMana=_world.getTurnPlayer().getCurrentMana()		
+		return self.handValue+self.boardValue-self.opponentBoardValue-self.opponentLife/2-self.currentMana
 		pass
 	def calculateBoardValue(self,_boardElements):
 		return sum(list(map(lambda e:e.getCurrentPower(),_boardElements)))
