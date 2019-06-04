@@ -80,7 +80,7 @@ class ruleBaseBrain(baseBrain):
 		self.boardValue=self.calculateBoardValue(self.turnPlayerBoard)
 		self.opponentPlayerBoard=_world.getOpponentPlayerBoard().getElements()
 		self.opponentBoardValue=self.calculateBoardValue(self.opponentPlayerBoard)
-		self.currentMana=_world.getTurnPlayer().getCurrentMana()		
+		self.currentMana=_world.getTurnPlayer().getCurrentMana()
 		return self.handValue+self.boardValue-self.opponentBoardValue-self.opponentLife/2-self.currentMana
 		pass
 	def calculateBoardValue(self,_boardElements):

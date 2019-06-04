@@ -4,11 +4,11 @@
 # gameMaster classを保持。ボタンを押すごとにgameMasterが次のノードを返す。
 # そのノードを基にApplication classが描画
 # main class は主に描画担当
+import sys
 import tkinter as tk
 import gameMaster as gm
 import copy
 import deckBuilder as db
-import move
 import brain
 import world as w
 import time as t
@@ -38,11 +38,28 @@ class Application(tk.Tk):
 		#self.battleFrame.place(relx=0,rely=0,relwidth=1,relheight=1)
 		self.deckEditFrame.tkraise()
 		self.agents=[human(),brain.ruleBaseBrain()]
-		self.rightDeck=self.agents[1].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
+		self.rightDeck=[]
+		self.leftDeck=[]
+		self.iterate=0
+		while not self.doesDeckSuitForRules(self.rightDeck,self.cardList,self.rule):
+			if self.iterate==5:
+				print("error")
+				sys.exit(self.iterate)
+				pass
+			self.rightDeck=self.agents[1].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
+			self.iterate+=1
+			pass
 		if isinstance(self.agents[0],human):
 			self.createDeckEditWindow()
 		else:
-			self.leftDeck=self.agents[0].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
+			self.iterate=0
+			while not self.doesDeckSuitForRules(self.rightDeck,self.cardList,self.rule):
+				if self.iterate==5:
+					sys.exit(self.iterate)
+					pass
+				self.leftDeck=self.agents[0].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
+				self.iterate+=1
+				pass
 			self.changeBattlePage()
 
 	def createDeckEditWindow(self):
@@ -62,6 +79,29 @@ class Application(tk.Tk):
 		self.tree=self.gm.developInitialGameTree()
 		self.visualizeFirstNode(self.tree.getWorld())
 		self.after(100,lambda:self.shift(self.tree))
+		pass
+	def doesDeckSuitForRules(self,_deck,_cardList,_rule):
+		self.checkDict={}
+		for item in _deck:
+			if not (item in _cardList):
+				return False
+			else:
+				if item["cardName"] in self.checkDict.keys():
+					self.checkDict[item["cardName"]]+=1
+					pass
+				else:
+					self.checkDict[item["cardName"]]=1
+				pass
+			pass
+		for key in self.checkDict.keys():
+			if self.checkDict[key]>_rule["max_per_card"]:
+				return False
+				pass
+			pass
+		if sum(list(map(lambda k:self.checkDict[k],self.checkDict.keys())))<_rule["deck_min"]:
+			return False
+			pass
+		return True
 		pass
 	def shift(self,_gameTree):
 		self.visualizeMatchFromNode(_gameTree.getWorld())
