@@ -157,11 +157,22 @@ class gameMaster(object):
 					pass
 				def isPlayableAction(_opt):
 					if _opt.split(" ")[0]=="play":
-						self.isFullBoard=_world.getTurnPlayerBoard().isBoardFull()
+						def isPlayableCard(cardTuple):
+							self.currentMana=_world.getTurnPlayer().getCurrentMana()
+							self.turnPlayerBoard=_world.getTurnPlayerBoard()
+							if cardTuple[1].getCurrentCost()>self.currentMana:
+								return False
+								pass
+							if cardTuple[1].getMainCardType()=="creature":
+								return not (self.turnPlayerBoard.isBoardFull())
+								pass
+							if cardTuple[1].getMainCardType()=="sorcery":
+								return True
+							return False
+							pass
 						self.turnPlayerHand=_world.getTurnPlayerHand().getElements()
-						self.currentMana=_world.getTurnPlayer().getCurrentMana()
-						self.playableHand=list(filter(lambda item:CI.card(item).getCurrentCost()<=self.currentMana,self.turnPlayerHand))
-						return len(self.playableHand)>0 and not(self.isFullBoard)
+						self.playableHand=list(filter(lambda item:isPlayableCard(item),enumerate(self.turnPlayerHand)))
+						return len(self.playableHand)>0
 						pass
 					if _opt.split(" ")[0]=="activate":
 						self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
@@ -185,6 +196,19 @@ class gameMaster(object):
 				return self.retMoves
 				pass
 			if _state["opt"]=="play":
+				def isPlayableCard(cardTuple):
+					self.currentMana=_world.getTurnPlayer().getCurrentMana()
+					self.turnPlayerBoard=_world.getTurnPlayerBoard()
+					if cardTuple[1].getCurrentCost()>self.currentMana:
+						return False
+						pass
+					if cardTuple[1].getMainCardType()=="creature":
+						return not (self.turnPlayerBoard.isBoardFull())
+						pass
+					if cardTuple[1].getMainCardType()=="sorcery":
+						return True
+					return False
+					pass
 				def playCard(playingCardTuple):
 					def inner(_w):
 						self.wn=self.cloneWorld(_w)
@@ -197,12 +221,8 @@ class gameMaster(object):
 					return self.m
 					pass
 				self.turnPlayerHand=_world.getTurnPlayerHand().getElements()
-				self.retMoves=[]
-				if not _world.getTurnPlayerBoard().isBoardFull():
-					self.currentMana=_world.getTurnPlayer().getCurrentMana()
-					self.playableHand=list(filter(lambda item:CI.card(item[1]).getCurrentCost()<=self.currentMana,enumerate(self.turnPlayerHand)))
-					self.retMoves=list(map(playCard,list(self.playableHand)))
-					pass
+				self.playableHand=list(filter(lambda item:isPlayableCard(item),enumerate(self.turnPlayerHand)))
+				self.retMoves=list(map(playCard,self.playableHand))
 				return self.retMoves
 				pass
 
@@ -301,6 +321,31 @@ class gameMaster(object):
 				#_state["playingCardTuple"]に使っているカードが収納されている。
 				if _state["playingCardTuple"][1].getMainCardType()=="creature":
 					if "step" in _state.keys():
+						if _state["step"]=="burn":
+							#とりあえずburn 能力は個別で発動させよう(?)
+							def chooseBurnObject(opponentCardTuple):
+								def inner(_w):
+									self.wn=self.cloneWorld(_w)
+									self.wn.getOpponentPlayerBoard().getElements()[opponentCardTuple[0]].dealDamage(2)
+									self.wn.sendDeadCreaturesFromBoards()
+									return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
+									pass
+								self.m=move.move()
+								self.m.setDescription("deal 2 damage for {card}".format(card=str(opponentCardTuple[1])))
+								self.m.setGameTreePromise(self.delay(inner,_world))
+								self.m.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
+								return self.m
+								pass
+							self.opponentBoard=_world.getOpponentPlayerBoard().getElements()
+							if len(self.opponentBoard)>0:
+								self.retMoves=list(map(chooseBurnObject ,enumerate(self.opponentBoard)))
+								return self.retMoves
+								pass
+							else:
+								self.retMoves.setDescription("there is no object.")
+								self.retMoves.setGameTreePromise(self.delay(doNothing,_world))
+								self.retMoves.setSimulateTree(self.delay(doNothing,w.visibleWorld(_world)))
+								return [self.retMoves]
 						if _state["playingCardTuple"][1].hasSkillsByType("permanent"):
 							#permanent-->常在型能力
 							pass
@@ -317,6 +362,9 @@ class gameMaster(object):
 									pass
 								if "cantrip" in self.cip:
 									self.wn.dealCardsX(1)
+									pass
+								if "burn" in self.cip:
+									return self.makeGameTree(self.wn,_state={"phase":_state["phase"],"opt":_state["opt"],"playingCardTuple":_state["playingCardTuple"],"step":"burn"})
 									pass
 								pass
 								return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
@@ -399,7 +447,7 @@ class gameMaster(object):
 								self.wn.gainTurnPlayerX(3)
 								return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
 								pass
-							self.retMoves.setDescription("gain 3 lifes.")
+							self.retMoves.setDescription("gain 3 life.")
 							self.retMoves.setGameTreePromise(self.delay(inner,_world))
 							self.retMoves.setSimulateTree(self.delay(inner,_world))
 							return [self.retMoves]

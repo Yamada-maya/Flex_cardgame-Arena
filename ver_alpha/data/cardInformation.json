@@ -34,6 +34,27 @@
 		}
 	},
 	{
+		"cardName": "element",
+		"baseCost": 1,
+		"baseToughness": 1,
+		"basePower": 0,
+		"cardType": {
+			"main": "creature",
+			"sub": [
+				"element"
+			]
+		},
+		"skills": {
+			"cip": [
+				{
+					"name": "burn",
+					"cost": null,
+					"forced":true
+				}
+			]
+		}
+	},
+	{
 		"cardName": "shaman",
 		"baseCost": 1,
 		"baseToughness": 1,
@@ -92,14 +113,14 @@
 		}
 	},
 	{
-		"cardName": "knight",
+		"cardName": "elephant",
 		"baseCost": 3,
 		"baseToughness": 3,
 		"basePower": 3,
 		"cardType": {
 			"main": "creature",
 			"sub": [
-				"knight"
+				"elephant"
 			]
 		},
 		"skills": {}
