@@ -16,7 +16,7 @@
 		"cardName": "goblin",
 		"baseCost": 1,
 		"baseToughness": 1,
-		"basePower": 2,
+		"basePower": 1,
 		"cardType": {
 			"main": "creature",
 			"sub": [
@@ -27,7 +27,8 @@
 			"cip": [
 				{
 					"name": "haste",
-					"cost": null
+					"cost": null,
+					"forced":true
 				}
 			]
 		}
@@ -46,12 +47,11 @@
 		"skills": {
 			"activate": [
 				{
-				"name":"looter",
+				"name":"research",
 				"cost":{
 					"tap":true,
 					"mana":0,
-					"discard":0,
-					"sacrifice":0
+					"discard":0
 					}
 				}
 			]
@@ -69,6 +69,27 @@
 			]
 		},
 		"skills": {}
+	},
+	{
+		"cardName": "wolf",
+		"baseCost": 2,
+		"baseToughness": 1,
+		"basePower": 2,
+		"cardType": {
+			"main": "creature",
+			"sub": [
+				"bear"
+			]
+		},
+		"skills": {
+			"cip":[
+				{
+				"name":"haste",
+				"cost":null,
+				"forced":true
+				}
+			]
+		}
 	},
 	{
 		"cardName": "knight",
@@ -98,7 +119,8 @@
 			"cip": [
 				{
 				"name":"haste",
-				"cost":null
+				"cost":null,
+				"forced":true
 				}
 			]
 		}
@@ -121,8 +143,7 @@
 				"cost":{
 					"tap":false,
 					"mana":2,
-					"discard":0,
-					"sacrifice":0
+					"discard":0
 					}
 				}
 			]

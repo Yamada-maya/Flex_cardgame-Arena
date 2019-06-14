@@ -77,9 +77,6 @@ class card(object):
 		if _cost["discard"]>0:
 			self.retStr+="{discard}discard ".format(discard=_cost["discard"])
 			pass
-		if _cost["sacrifice"]>0:
-			self.retStr+="{sacrifice}sacrifice ".format(sacrifice=_cost["sacrifice"])
-			pass
 		if self.retStr=="":
 			self.retStr+="no cost."
 			pass

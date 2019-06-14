@@ -15,6 +15,9 @@ class playerStatus(object):
 	def getLife(self):
 		return self.LIFE
 		pass
+	def gainLife(self,num):
+		self.LIFE+=num
+		pass
 	def setLife(self,num):
 		self.LIFE=num
 		pass

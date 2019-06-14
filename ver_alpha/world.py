@@ -19,22 +19,23 @@ class visibleWorld(object):
 			self.fetchInformationFromWorld(_world)
 			pass
 	def fetchInformationFromWorld(self,_world):
-		self.turnPlayer=self.LEFT
+		self.turnPlayer=_world.getTurnPlayerIndex()
+		self.opponentPlayer=_world.getOpponentPlayerIndex()
 		self.hands[self.turnPlayer]=copy.deepcopy(_world.getTurnPlayerHand())
 		#ダミーカードで埋める
-		self.hands[self.getOpponentPlayerIndex()]=PA.hand()
-		self.hands[self.getOpponentPlayerIndex()].fillByDummyCards(_world.getOpponentPlayerHand().getNumOfElements())
+		self.hands[self.opponentPlayer]=PA.hand()
+		self.hands[self.opponentPlayer].fillByDummyCards(_world.getOpponentPlayerHand().getNumOfElements())
 		self.graves[self.turnPlayer]=copy.deepcopy(_world.getTurnPlayerGrave())
-		self.graves[self.getOpponentPlayerIndex()]=copy.deepcopy(_world.getOpponentPlayerGrave())
+		self.graves[self.opponentPlayer]=copy.deepcopy(_world.getOpponentPlayerGrave())
 		#これもダミーカードで埋める。
 		self.decks[self.turnPlayer]=PA.deck([])
 		self.decks[self.turnPlayer].fillByDummyCards(_world.getTurnPlayerDeck().getNumOfElements())
-		self.decks[self.getOpponentPlayerIndex()]=PA.deck([])
-		self.decks[self.getOpponentPlayerIndex()].fillByDummyCards(_world.getOpponentPlayerDeck().getNumOfElements())
+		self.decks[self.opponentPlayer]=PA.deck([])
+		self.decks[self.opponentPlayer].fillByDummyCards(_world.getOpponentPlayerDeck().getNumOfElements())
 		self.boards[self.turnPlayer]=copy.deepcopy(_world.getTurnPlayerBoard())
-		self.boards[self.getOpponentPlayerIndex()]=copy.deepcopy(_world.getOpponentPlayerBoard())
+		self.boards[self.opponentPlayer]=copy.deepcopy(_world.getOpponentPlayerBoard())
 		self.players[self.turnPlayer]=copy.deepcopy(_world.getTurnPlayer())
-		self.players[self.getOpponentPlayerIndex()]=copy.deepcopy(_world.getOpponentPlayer())
+		self.players[self.opponentPlayer]=copy.deepcopy(_world.getOpponentPlayer())
 		pass
 	def getTurnPlayer(self):
 		return self.players[self.turnPlayer]
@@ -83,6 +84,9 @@ class visibleWorld(object):
 		for x in range(num):
 			self.dealACardX()
 			pass
+		pass
+	def gainTurnPlayerX(self,_num):
+		self.players[self.turnPlayer].gainLife(_num)
 		pass
 	def dealACardToOpponentX(self):
 		self.objectPlayerDeck=self.decks[self.getOpponentPlayerIndex()]

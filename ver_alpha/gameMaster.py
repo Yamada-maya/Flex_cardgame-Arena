@@ -11,7 +11,7 @@ import copy
 import json
 class gameMaster(object):
 	"""docstring for gameMaster"""
-	def __init__(self,_cardLists):
+	def __init__(self,_cardLists=None):
 		super(gameMaster, self).__init__()
 		self.f=open("./data/rule.json",'r')
 		self.rule=json.load(self.f)
@@ -56,7 +56,8 @@ class gameMaster(object):
 		return self.retCreature
 		pass
 	def makeGameTree(self,_world,_state):
-		self.retTree=gt.gameTree(_world,self.listPossibleMoves(_world,_state))
+		# ここで_stateを返すとagentに渡すときに_worldを改変させられそう
+		self.retTree=gt.gameTree(_world=_world,_moves=self.listPossibleMoves(_world,_state),_state=_state)
 		return self.retTree
 		pass
 	def listPossibleMoves(self,_world,_state):
@@ -143,15 +144,12 @@ class gameMaster(object):
 					return self.m
 					pass
 				def canPayCosts(_card,_skill):
-					if not(_skill["cost"]["tap"]) or not (_card.isStand()):
+					if _skill["cost"]["tap"] and not (_card.isStand()):
 						return False
 					if _skill["cost"]["mana"]>_world.getTurnPlayer().getCurrentMana():
 						return False
 					if _skill["cost"]["discard"]>_world.getTurnPlayerHand().getNumOfElements():
 						return False
-					if _skill["cost"]["sacrifice"]>_world.getTurnPlayerBoard().getNumOfElements():
-						return False
-						pass
 					return True
 				def hasActivatableSkill(_card):
 					self.skill=_card.getSkillsByType("activate")
@@ -167,8 +165,8 @@ class gameMaster(object):
 						pass
 					if _opt.split(" ")[0]=="activate":
 						self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
-						self.skiilCreatures=list(filter(lambda item:item.hasSkillsByType("activate"),self.turnPlayerBoard))
-						self.activatableCreatures=list(filter(hasActivatableSkill,self.skiilCreatures))
+						self.skillCreatures=list(filter(lambda item:item.hasSkillsByType("activate"),self.turnPlayerBoard))
+						self.activatableCreatures=list(filter(hasActivatableSkill,self.skillCreatures))
 						return len(self.activatableCreatures)>0
 						pass
 					if _opt.split(" ")[0]=="attack" :
@@ -200,22 +198,27 @@ class gameMaster(object):
 					pass
 				self.turnPlayerHand=_world.getTurnPlayerHand().getElements()
 				self.retMoves=[]
-				if _world.getTurnPlayerBoard().getNumOfElements()<self.boardLimit:
+				if not _world.getTurnPlayerBoard().isBoardFull():
 					self.currentMana=_world.getTurnPlayer().getCurrentMana()
 					self.playableHand=list(filter(lambda item:CI.card(item[1]).getCurrentCost()<=self.currentMana,enumerate(self.turnPlayerHand)))
 					self.retMoves=list(map(playCard,list(self.playableHand)))
 					pass
-				"""
-								self.additionalMove=move.move()
-								self.additionalMove.setDescription("don't play any card.")
-								self.additionalMove.setGameTreePromise(self.delay(doNothing,_world))
-								self.additionalMove.setSimulateTree(self.delay(doNothing,w.visibleWorld(_world)))
-								self.retMoves.append(self.additionalMove)
-				"""
 				return self.retMoves
 				pass
 
 			if _state["opt"]=="activate":
+				def canPayCosts(_card,_skill):
+					if _skill["cost"]["tap"] and not (_card.isStand()):
+						return False
+					if _skill["cost"]["mana"]>_world.getTurnPlayer().getCurrentMana():
+						return False
+					if _skill["cost"]["discard"]>_world.getTurnPlayerHand().getNumOfElements():
+						return False
+					return True
+				def hasActivatableSkill(_card):
+					self.skill=_card.getSkillsByType("activate")
+					return len(list(filter(lambda s:canPayCosts(_card,s),self.skill)))>0
+					pass
 				def activateSkill(_actionCardTuple):
 					def inner(_w):
 						self.wn=self.cloneWorld(_w)
@@ -229,15 +232,9 @@ class gameMaster(object):
 					return self.m
 					pass
 				self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
-				self.actionableUnit=list(filter(lambda item:item.hasSkillsByType("activate"),self.turnPlayerBoard))
-				self.retMoves=list(map(activateSkill,list(enumerate(self.actionableUnit))))
-				"""
-				self.additionalMove=move.move()
-				self.additionalMove.setDescription("no skill activate")
-				self.additionalMove.setGameTreePromise(self.delay(doNothing,_world))
-				self.additionalMove.setSimulateTree(self.delay(doNothing,_world))
-				self.retMoves.append(self.additionalMove)
-				"""
+				self.skillCreatures=list(filter(lambda item:item[1].hasSkillsByType("activate"),list(enumerate(self.turnPlayerBoard))))
+				self.actionableCreatures=list(filter(lambda item:hasActivatableSkill(item[1]),self.skillCreatures))
+				self.retMoves=list(map(activateSkill,self.actionableCreatures))
 				return self.retMoves
 				pass
 			if _state["opt"]=="attack":
@@ -259,13 +256,6 @@ class gameMaster(object):
 				self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
 				self.attackableUnitTuple=list(filter(lambda item:item[1].isStand(),enumerate(self.turnPlayerBoard)))
 				self.retMoves=list(map(attackByCreature,list(self.attackableUnitTuple)))
-				"""
-				self.additionalMove=move.move()
-				self.additionalMove.setDescription("no unit action")
-				self.additionalMove.setGameTreePromise(self.delay(noAction,_world))
-				self.additionalMove.setSimulateTree(self.delay(noAction,w.visibleWorld(_world)))
-				self.retMoves.append(self.additionalMove)
-				"""
 				return self.retMoves
 				pass
 		if _state["phase"]=="end":
@@ -330,10 +320,12 @@ class gameMaster(object):
 									pass
 								pass
 								return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
-							self.retMoves.setDescription("solve cip.")
-							self.retMoves.setGameTreePromise(self.delay(solveCip,_world))
-							self.retMoves.setSimulateTree(self.delay(solveCip,w.visibleWorld(_world)))
-							return [self.retMoves]
+							self.cipMove=move.move()
+							self.cipMove.setDescription("solve cip.")
+							self.cipMove.setGameTreePromise(self.delay(solveCip,_world))
+							self.cipMove.setSimulateTree(self.delay(solveCip,w.visibleWorld(_world)))
+
+							return [self.cipMove]
 							pass
 						else:
 							pass
@@ -363,6 +355,7 @@ class gameMaster(object):
 					def inner(_w):
 						self.wn=self.cloneWorld(_w)
 						self.wn.getTurnPlayerHand().getElements().pop(_state["playingCardTuple"][0])
+						print("use dummy card?")
 						return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
 						pass
 					self.retMoves.setDescription("")
@@ -371,7 +364,7 @@ class gameMaster(object):
 					return [self.retMoves]
 			if _state["opt"]=="activate":
 				if "step" in _state.keys():
-					if _state["activateSkill"]["name"]=="looter":
+					if _state["activateSkill"]["name"]=="research":
 						if _state["step"]=="discard":
 							def chooseDiscard(_handTuple):
 								def inner(_w):
@@ -399,25 +392,27 @@ class gameMaster(object):
 							self.retMoves.setGameTreePromise(self.delay(inner,_world))
 							self.retMoves.setSimulateTree(self.delay(inner,_world))
 							return [self.retMoves]
-				if "activateSkill" in _state.keys():
-					def canPayCosts(_skill):
-						if not(_skill["cost"]["tap"]) or not (_state["playingCardTuple"][1].isStand()):
-							return False
-						if _skill["cost"]["mana"]>_world.getTurnPlayer().getCurrentMana():
-							return False
-						if _skill["cost"]["discard"]>_world.getTurnPlayerHand().getNumOfElements():
-							return False
-						if _skill["cost"]["sacrifice"]>_world.getTurnPlayerBoard().getNumOfElements():
-							return False
-							pass
-						return True
+					if _state["activateSkill"]["name"]=="heal":
+						if _state["step"]=="paid":
+							def inner(_w):
+								self.wn=self.cloneWorld(_w)
+								self.wn.gainTurnPlayerX(3)
+								return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
+								pass
+							self.retMoves.setDescription("gain 3 lifes.")
+							self.retMoves.setGameTreePromise(self.delay(inner,_world))
+							self.retMoves.setSimulateTree(self.delay(inner,_world))
+							return [self.retMoves]
+
 						pass
+				if "activateSkill" in _state.keys():
 					def activateSkill(_w):
 						self.wn=self.cloneWorld(_w)
 						if _state["activateSkill"]["cost"]["tap"]:
 							#起動しているクリーチャー情報が欲しいからタプルにする必要あるかも
 							self.wn.getTurnPlayerBoard().getElements()[_state["playingCardTuple"][0]].tapThisCreature()
 							pass
+						self.wn.getTurnPlayer().consumeMana(_state["activateSkill"]["cost"]["mana"])
 						return self.makeGameTree(self.wn,_state={"phase":_state["phase"],"opt":_state["opt"],"playingCardTuple":_state["playingCardTuple"],"activateSkill":_state["activateSkill"],"step":"paid"})
 						pass
 					self.retMoves=[]
@@ -426,14 +421,17 @@ class gameMaster(object):
 					self.activateMove.setGameTreePromise(self.delay(activateSkill,_world))
 					self.activateMove.setSimulateTree(self.delay(activateSkill,w.visibleWorld(_world)))
 					self.retMoves.append(self.activateMove)
-					"""
-					self.additionalMove.setDescription("refuse paying cost.")
-					self.additionalMove.setGameTreePromise(self.delay(doNothing,_world))
-					self.retMoves.append(self.additionalMove)
-					"""
 					return self.retMoves
 				else:
-					self.skills=_state["playingCardTuple"][1].getSkillsByType("activate")
+					def canPayCosts(_card,_skill):
+						if _skill["cost"]["tap"] and not (_state["playingCardTuple"][1].isStand()):
+							return False
+						if _skill["cost"]["mana"]>_world.getTurnPlayer().getCurrentMana():
+							return False
+						if _skill["cost"]["discard"]>_world.getTurnPlayerHand().getNumOfElements():
+							return False
+						return True
+						pass
 					def activateSkill(_skill):
 						def inner(_w):
 							self.wn=self.cloneWorld(_w)
@@ -445,12 +443,9 @@ class gameMaster(object):
 						self.m.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
 						return self.m
 						pass
-					self.retMoves=list(map(activateSkill,self.skills))
-					"""
-					self.additionalMove=move.move()
-					self.additionalMove.setDescription("activate no skill.")
-					self.additionalMove.setGameTreePromise(self.delay(doNothing,_world))
-					"""
+					self.skills=_state["playingCardTuple"][1].getSkillsByType("activate")
+					self.activatableSkills=list(filter(lambda s:canPayCosts(_state["playingCardTuple"][1],s),self.skills))#
+					self.retMoves=list(map(activateSkill,self.activatableSkills))
 					return self.retMoves
 					pass
 			if _state["opt"]=="attack":
@@ -485,11 +480,14 @@ class gameMaster(object):
 					pass
 				self.opponentBoard=_world.getOpponentPlayerBoard()
 				self.retMoves=list(map(decideAttackObject,list(enumerate(self.opponentBoard.getElements()))))
-				self.additionalMove=move.move()
-				self.additionalMove.setDescription("attack body")
-				self.additionalMove.setGameTreePromise(self.delay(bodyAttack,_world))
-				self.additionalMove.setSimulateTree(self.delay(bodyAttack,w.visibleWorld(_world)))
-				self.retMoves.append(self.additionalMove)
+				if _world.getOpponentPlayerBoard().isBoardFull():
+					pass
+				else:
+					self.additionalMove=move.move()
+					self.additionalMove.setDescription("attack body")
+					self.additionalMove.setGameTreePromise(self.delay(bodyAttack,_world))
+					self.additionalMove.setSimulateTree(self.delay(bodyAttack,w.visibleWorld(_world)))
+					self.retMoves.append(self.additionalMove)
 				return self.retMoves
 				pass
 		if _state["phase"]=="end":

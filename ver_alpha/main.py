@@ -121,18 +121,19 @@ class Application(tk.Tk):
 			self.retDict={
 				"index":_moveTuple[0],
 				"description":_moveTuple[1].getDescription(),
-				"tree":_moveTuple[1].getSimulateTree()
+				"tree":_moveTuple[1].getSimulateTree(),
 				}
 			return self.retDict
 			pass
 		self.moves=_gameTree.getMoves()
+		self.state=_gameTree.getState()
 		if len(self.moves)==1:
 			self.retMove=fetchSimulationTrees((0,self.moves[0]))
 			return self.retMove
 		self.visibleWorld=w.visibleWorld(_gameTree.getWorld())
 		self.simulationTrees=list(map(fetchSimulationTrees,enumerate(self.moves)))
 		#agentに選んでもらう
-		self.m=_agent.chooseBestMove(self.visibleWorld,copy.deepcopy(self.simulationTrees))
+		self.m=_agent.chooseBestMove(self.visibleWorld,copy.deepcopy(self.simulationTrees),self.state)
 		return self.m
 		pass
 	def visualizeFirstNode(self,_world):

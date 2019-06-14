@@ -1,5 +1,6 @@
 import copy
 import random
+import gmForAgent as gm
 class baseBrain(object):
 	"""docstring for baseBrain"""
 	def __init__(self):
@@ -51,27 +52,25 @@ class ruleBaseBrain(baseBrain):
 	"""docstring for ruleBaseBrain"""
 	def __init__(self):
 		super(ruleBaseBrain, self).__init__()
-						
-	def chooseBestMove(self,_world,_moveList):
+	def chooseBestMove(self,_world,_moveList,_state):
 		self.index=0
-		self.values=list(map(lambda m:self.getActionValue(_world,m["tree"]),_moveList))
-		print(_moveList)
-		print(self.values)
+		self.values=list(map(lambda m:self.getActionValue(_world,m["tree"],_description=m["description"]),_moveList))
 		self.index=self.values.index(max(self.values))
 		return _moveList[self.index]
 		pass
-	def getActionValue(self,_world,_move):
-		return self.simulateUntilEndOfMyTurn(_world,_move)
+	def getActionValue(self,_world,_move,_description=None):
+		return self.simulateUntilEndOfMyTurn(_world,_move,_description=_description)
 		pass
-	def simulateUntilEndOfMyTurn(self,_world,_gameTreePromise):
+	def simulateUntilEndOfMyTurn(self,_world,_gameTreePromise,_description=None,_recursive=0):
 		# return a value of board.
 		# 自分の最後の盤面であればその時の評価値を返す。
 		# それ以外であれば最大値を返す的な…
-		self.nextTreeList=_gameTreePromise()
-		self.nextWorld=self.nextTreeList.getWorld()
+		self.nextTree=_gameTreePromise()
+		self.nextWorld=self.nextTree.getWorld()
+		print(_recursive)
 		if self.nextWorld.getTurnPlayerIndex()!=_world.getTurnPlayerIndex():
 			return self.calculateWorldValue(_world)
-		return max(list(map(lambda m:self.simulateUntilEndOfMyTurn(self.nextWorld,m.getGameTreePromise()),self.nextTreeList.getMoves())))
+		return max(list(map(lambda m:self.simulateUntilEndOfMyTurn(self.nextWorld,m.getGameTreePromise(),_description=m.getDescription(),_recursive=_recursive+1),self.nextTree.getMoves())))
 		pass
 	def calculateWorldValue(self,_world):
 		self.opponentLife=_world.getOpponentPlayer().getLife()
