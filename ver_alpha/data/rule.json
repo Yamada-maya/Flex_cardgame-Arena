@@ -3,7 +3,7 @@
 "board_max":3,
 "does_land_exist":false,
 "initial_life":20,
-"deck_min":10,
+"deck_min":15,
 "max_per_card":2,
 "initial_hand":3
 }

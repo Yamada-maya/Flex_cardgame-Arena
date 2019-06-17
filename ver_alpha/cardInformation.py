@@ -45,41 +45,40 @@ class card(object):
 		if self.hasSkillsByType(_skillType):
 			return self.getSkills()[_skillType]
 			pass
-		return 
+		return []
 		pass
 	def getSkillNamesByType(self,_skillType):
 		self.retList=[]
 		if self.hasSkillsByType(_skillType):
 			for item in self.getSkills()[_skillType]:
 				self.retList.append(item["name"])
-			return self.retList
 			pass
-		return 
+		return self.retList
 	def getSkillCostsByType(self,_skillType):
 		self.retList=[]
 		if self.hasSkillsByType(_skillType):
 			for item in self.getSkills()[_skillType]:
 				_self.retList.append(item["cost"])
-			return self.retList
 			pass
-		return
+		return self.retList
 	def hasSkillsByType(self,_skillType):
 		return _skillType in self.getSkills().keys()
 		pass
 	def skillCostToString(self,_cost):
 		self.retStr=""
-		if _cost["tap"]:
-			self.retStr+="tap "
-			pass
-		if _cost["mana"]>0:
-			self.retStr+="{mana}mana ".format(mana=_cost["mana"])
-			pass
-		if _cost["discard"]>0:
-			self.retStr+="{discard}discard ".format(discard=_cost["discard"])
-			pass
-		if self.retStr=="":
-			self.retStr+="no cost."
-			pass
+		if self.getMainCardType()=="creature":
+			if _cost["tap"]:
+				self.retStr+="tap "
+				pass
+			if _cost["mana"]>0:
+				self.retStr+="{mana}mana ".format(mana=_cost["mana"])
+				pass
+			if _cost["discard"]>0:
+				self.retStr+="{discard}discard ".format(discard=_cost["discard"])
+				pass
+			if self.retStr=="":
+				self.retStr+="no cost."
+				pass
 		self.retStr+="."
 		return self.retStr
 		pass
@@ -124,4 +123,16 @@ class creature(card):
 		pass
 	def isAlive(self):
 		return self.statusDict["currentToughness"]>0
+		pass
+	def addPowerBonus(self,_powerBonus):
+		self.statusDict["currentPower"]+=_powerBonus
+		pass
+	def addToughnessBonus(self,_toughnessBonus):
+		self.statusDict["currentToughness"]+=_toughnessBonus
+		pass
+	def addBonus(self,_powerBonus=0,_toughnessBonus=0,_bothBonus=0):
+		self.addPowerBonus(_powerBonus)
+		self.addToughnessBonus(_toughnessBonus)
+		self.addPowerBonus(_bothBonus)
+		self.addToughnessBonus(_bothBonus)
 		pass

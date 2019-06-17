@@ -34,6 +34,25 @@
 		}
 	},
 	{
+		"cardName": "brick",
+		"baseCost": 1,
+		"baseToughness": 2,
+		"basePower": 0,
+		"cardType": {
+			"main": "creature",
+			"sub": [
+				"wall"
+			]
+		},
+		"skills": {
+			"ability":[
+				{
+				"name":"guardian"
+				}
+			]
+		}
+	},
+	{
 		"cardName": "element",
 		"baseCost": 1,
 		"baseToughness": 1,
@@ -113,6 +132,25 @@
 		}
 	},
 	{
+		"cardName": "wall",
+		"baseCost": 2,
+		"baseToughness": 3,
+		"basePower": 0,
+		"cardType": {
+			"main": "creature",
+			"sub": [
+				"wall"
+			]
+		},
+		"skills": {
+			"ability":[
+				{
+				"name":"guardian"
+				}
+			]
+		}
+	},
+	{
 		"cardName": "elephant",
 		"baseCost": 3,
 		"baseToughness": 3,
@@ -169,5 +207,41 @@
 				}
 			]
 		}
+	},
+	{
+		"cardName": "impact",
+		"baseCost": 2,
+		"baseToughness": 0,
+		"basePower": 0,
+		"cardType": {
+			"main": "sorcery",
+			"sub": [
+			]
+		},
+		"skills": {}
+	},
+	{
+		"cardName": "knowledge",
+		"baseCost": 3,
+		"baseToughness": 0,
+		"basePower": 0,
+		"cardType": {
+			"main": "sorcery",
+			"sub": [
+			]
+		},
+		"skills": {}
+	},
+	{
+		"cardName": "growth",
+		"baseCost": 3,
+		"baseToughness": 0,
+		"basePower": 0,
+		"cardType": {
+			"main": "sorcery",
+			"sub": [
+			]
+		},
+		"skills": {}
 	}
 ]

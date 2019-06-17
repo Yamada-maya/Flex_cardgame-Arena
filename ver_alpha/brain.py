@@ -6,7 +6,7 @@ class baseBrain(object):
 	def __init__(self):
 		super(baseBrain, self).__init__()
 		self.mainActions=["play a card","activate a skill","attack by creature"]
-	def chooseBestMove(self,_world,_moveList):
+	def chooseBestMove(self,_world,_moveList,_state):
 		#implement this point!!
 		#_moveList=[move,move,move,...,move]
 		#move is composed of,"index", "description", and "tree".
@@ -24,7 +24,26 @@ class randomBrain(baseBrain):
 	"""docstring for randomBrain"""
 	def __init__(self):
 		super(randomBrain, self).__init__()
-	def chooseBestMove(self,_world,_moveList):
+	def developOwnDeck(self,_cardList,_ruleList):
+		self.retList=[]
+		self.hit=_ruleList["deck_min"]
+		self.l=[]
+		for item in _cardList:
+			for index in range(_ruleList["max_per_card"]):
+				self.l.append(copy.deepcopy(item))
+				pass
+			pass
+		self.denominator=len(self.l)
+		for item in self.l:
+			if random.random()<self.hit/self.denominator:
+				self.retList.append(copy.deepcopy(item))
+				self.hit-=1
+				pass
+			self.denominator-=1
+			pass
+		return self.retList
+		pass
+	def chooseBestMove(self,_world,_moveList,_state):
 		self.index=0
 		if _moveList[0]["description"] in self.mainActions:
 			self.weight=self.getNumOfRegalActions(_moveList)

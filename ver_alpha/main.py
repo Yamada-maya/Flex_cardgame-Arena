@@ -37,7 +37,7 @@ class Application(tk.Tk):
 		#self.battleFrame=tk.Frame(self)
 		#self.battleFrame.place(relx=0,rely=0,relwidth=1,relheight=1)
 		self.deckEditFrame.tkraise()
-		self.agents=[human(),brain.ruleBaseBrain()]
+		self.agents=[human(),brain.randomBrain()]
 		self.rightDeck=[]
 		self.leftDeck=[]
 		self.iterate=0

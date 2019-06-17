@@ -398,6 +398,70 @@ class gameMaster(object):
 				elif _state["playingCardTuple"][1].getMainCardType()=="land":
 					pass
 				elif _state["playingCardTuple"][1].getMainCardType()=="sorcery":
+					if _state["playingCardTuple"][1].getCardName()=="impact":
+						def chooseObject(_opponentCardTuple):
+							def inner(_world):
+								self.wn=self.cloneWorld(_world)
+								self.wn.getOpponentPlayerBoard().getElements()[_opponentCardTuple[0]].dealDamage(3)
+								self.wn.sendDeadCreaturesFromBoards()
+								self.playingCard=self.wn.getTurnPlayerHand().getElements().pop(_state["playingCardTuple"][0])
+								self.wn.addTurnPlayerGrave(copy.deepcopy(self.playingCard))
+								self.wn.getTurnPlayer().consumeMana(_state["playingCardTuple"][1].getCurrentCost())
+								return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
+								pass
+							self.m=move.move()
+							self.m.setDescription("deal 3 damage for {card}".format(card=str(_opponentCardTuple[1])))
+							self.m.setGameTreePromise(self.delay(inner,_world))
+							self.m.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
+							return self.m
+							pass
+						def burnOpponent(_world):
+							self.wn=self.cloneWorld(_world)
+							self.playingCard=self.wn.getTurnPlayerHand().getElements().pop(_state["playingCardTuple"][0])
+							self.wn.addTurnPlayerGrave(copy.deepcopy(self.playingCard))
+							self.wn.getTurnPlayer().consumeMana(_state["playingCardTuple"][1].getCurrentCost())
+							self.wn.getOpponentPlayer().dealDamage(3)
+							return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
+							pass
+						self.opponentBoard=_world.getOpponentPlayerBoard().getElements()
+						self.retMoves=list(map(chooseObject,enumerate(self.opponentBoard)))
+						self.additionalMove=move.move()
+						self.additionalMove.setDescription("deal 3 damage for opponent.")
+						self.additionalMove.setGameTreePromise(self.delay(burnOpponent,_world))
+
+						self.additionalMove.setSimulateTree(self.delay(burnOpponent,w.visibleWorld(_world)))
+						self.retMoves.append(self.additionalMove)
+						return self.retMoves
+						pass
+					elif _state["playingCardTuple"][1].getCardName()=="knowledge":
+						def inner(_world):
+							self.wn=self.cloneWorld(_world)
+							self.playingCard=self.wn.getTurnPlayerHand().getElements().pop(_state["playingCardTuple"][0])
+							self.wn.addTurnPlayerGrave(copy.deepcopy(self.playingCard))
+							self.wn.dealCardsX(2)
+							self.wn.getTurnPlayer().consumeMana(_state["playingCardTuple"][1].getCurrentCost())
+							return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
+							pass
+						self.retMoves.setDescription("draw 2 cards.")
+						self.retMoves.setGameTreePromise(self.delay(inner,_world))
+						self.retMoves.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
+						return [self.retMoves]
+					elif _state["playingCardTuple"][1].getCardName()=="growth":
+						def inner(_world):
+							self.wn=self.cloneWorld(_world)
+							self.playingCard=self.wn.getTurnPlayerHand().getElements().pop(_state["playingCardTuple"][0])
+							self.wn.addTurnPlayerGrave(copy.deepcopy(self.playingCard))
+							self.wn.getTurnPlayer().consumeMana(_state["playingCardTuple"][1].getCurrentCost())
+							self.turnPlayerBoard=self.wn.getTurnPlayerBoard().getElements()
+							for item in self.turnPlayerBoard:
+								item.addBonus(_bothBonus=1)
+								pass
+							return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
+							pass
+						self.retMoves.setDescription("put +1/+1 to your creatures.")
+						self.retMoves.setGameTreePromise(self.delay(inner,_world))
+						self.retMoves.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
+						return [self.retMoves]
 					pass
 				else:
 					def inner(_w):
@@ -527,8 +591,13 @@ class gameMaster(object):
 					return self.makeGameTree(self.wn,{"phase":_state["phase"]})
 					pass
 				self.opponentBoard=_world.getOpponentPlayerBoard()
-				self.retMoves=list(map(decideAttackObject,list(enumerate(self.opponentBoard.getElements()))))
-				if _world.getOpponentPlayerBoard().isBoardFull():
+				self.targetableCreatures=list(filter(lambda item:"guardian" in item[1].getSkillNamesByType("ability"),enumerate(self.opponentBoard.getElements())))
+				self.isThereGuardian=len(self.targetableCreatures)>0
+				if not self.isThereGuardian:
+					self.targetableCreatures=enumerate(self.opponentBoard.getElements())
+					pass
+				self.retMoves=list(map(decideAttackObject,self.targetableCreatures))
+				if self.opponentBoard.isBoardFull() or self.isThereGuardian:
 					pass
 				else:
 					self.additionalMove=move.move()
