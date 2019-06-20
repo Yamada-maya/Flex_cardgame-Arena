@@ -12,6 +12,8 @@ class baseBrain(object):
 		#move is composed of,"index", "description", and "tree".
 		return _moveList[0]
 		pass
+	def getGameResult(self,_won):
+		pass
 	def developOwnDeck(self,_cardList,_ruleList):
 		self.retList=[]
 		for item in _cardList:

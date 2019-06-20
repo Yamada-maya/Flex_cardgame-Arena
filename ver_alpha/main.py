@@ -10,6 +10,7 @@ import gameMaster as gm
 import copy
 import deckBuilder as db
 import brain
+import myAgent
 import world as w
 import time as t
 import json
@@ -19,7 +20,7 @@ class human(object):
 		super(human, self).__init__()
 		pass
 		
-class Application(tk.Tk):
+class visualizeApp(tk.Tk):
 	def __init__(self):
 		tk.Tk.__init__(self)
 		# カード情報やルールのインポート
@@ -53,7 +54,7 @@ class Application(tk.Tk):
 			self.createDeckEditWindow()
 		else:
 			self.iterate=0
-			while not self.doesDeckSuitForRules(self.rightDeck,self.cardList,self.rule):
+			while not self.doesDeckSuitForRules(self.leftDeck,self.cardList,self.rule):
 				if self.iterate==5:
 					sys.exit(self.iterate)
 					pass
@@ -242,9 +243,121 @@ class Application(tk.Tk):
 		for item in self.moveButton:
 			item.place_forget()
 		pass
+class simpleApp(object):
+	"""docstring for simpleApp"""
+	def __init__(self):
+		super(simpleApp, self).__init__()
+		self.f = open('data/cardInformation.json', 'r')
+		self.cardList=json.load(self.f)
+		self.f.close()
+		self.f=open('data/rule.json', 'r')
+		self.rule=json.load(self.f)
+		self.f.close()
+		# ここまで
+		self.agents=[myAgent.myAgent(),myAgent.myAgent()]
+		self.rightDeck=[]
+		self.leftDeck=[]
+	def deckBuild(self):
+		self.iterate=0
+		while not self.doesDeckSuitForRules(self.rightDeck,self.cardList,self.rule):
+			if self.iterate==5:
+				print("error")
+				sys.exit(self.iterate)
+				pass
+			self.rightDeck=self.agents[1].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
+			self.iterate+=1
+			pass
+		self.iterate=0
+		while not self.doesDeckSuitForRules(self.leftDeck,self.cardList,self.rule):
+			if self.iterate==5:
+				sys.exit(self.iterate)
+				pass
+			self.leftDeck=self.agents[0].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
+			self.iterate+=1
+			pass
+		pass
+	def doesDeckSuitForRules(self,_deck,_cardList,_rule):
+		self.checkDict={}
+		for item in _deck:
+			if not (item in _cardList):
+				return False
+			else:
+				if item["cardName"] in self.checkDict.keys():
+					self.checkDict[item["cardName"]]+=1
+					pass
+				else:
+					self.checkDict[item["cardName"]]=1
+				pass
+			pass
+		for key in self.checkDict.keys():
+			if self.checkDict[key]>_rule["max_per_card"]:
+				return False
+				pass
+			pass
+		if sum(list(map(lambda k:self.checkDict[k],self.checkDict.keys())))<_rule["deck_min"]:
+			return False
+			pass
+		return True
+		pass
+	def giveResult(self,_world,_agentTuple):
+		self.winnerIndex=self.gm.getWinnerIndex(_world)
+		self.sign=self.winnerIndex==_agentTuple[0]
+		_agentTuple[1].getGameResult(self.sign)
+		if self.sign:
+			numOfWin[_agentTuple[0]]+=1
+			pass
+		pass
+	def shift(self,_gameTree):
+		print("len(_gameTree.getMoves())=")
+		print(len(_gameTree.getMoves()))
+		if len(_gameTree.getMoves())==0:
+			print("passed...")
+			l=list(map(lambda agent:self.giveResult(_gameTree.getWorld(),agent),enumerate(self.agents)))
+			return
+			pass
+		self.command=self.chooseMoveByAI(_gameTree,self.agents[_gameTree.getWorld().getTurnPlayerIndex()])
+		self.moves=_gameTree.getMoves()
+		self.shift(self.gm.force(self.moves[self.command["index"]].getGameTreePromise()))
+	def chooseMoveByAI(self,_gameTree,_agent):
+		t.sleep(0.1)
+		def fetchSimulationTrees(_moveTuple):
+			self.retDict={
+				"index":_moveTuple[0],
+				"description":_moveTuple[1].getDescription(),
+				"tree":_moveTuple[1].getSimulateTree(),
+				}
+			return self.retDict
+			pass
+		self.moves=_gameTree.getMoves()
+		self.state=_gameTree.getState()
+		self.visibleWorld=w.visibleWorld(_gameTree.getWorld())
+		self.simulationTrees=list(map(fetchSimulationTrees,enumerate(self.moves)))
+		#agentに選んでもらう
+		self.m=_agent.chooseBestMove(self.visibleWorld,copy.deepcopy(self.simulationTrees),self.state)
+		return self.m
+		pass
+	def startBattle(self):
+		self.deckBuild()
+		self.gm=gm.gameMaster([self.leftDeck,self.rightDeck])
+		self.tree=self.gm.developInitialGameTree()
+		self.shift(self.tree)
+		pass
+
+def main(_visualize=False):
+	if _visualize:
+		app=visualizeApp()
+		app.mainloop()
+		pass
+	else:
+		app=simpleApp()
+		for i in range(100):
+			app.startBattle()
+			print(numOfWin)
+
+	pass
 if __name__ == '__main__':
-	app=Application()
-	app.mainloop()
+	numOfWin=[0,0]
+	main()
 	#dbRoot=tk.Tk()
 	#deckWindow=db.deckBuilder(master=dbRoot)
 	#deckWindow.mainloop()
