@@ -35,14 +35,14 @@ class gameMaster(object):
 		self.newWorld=copy.deepcopy(_world)
 		return self.newWorld
 		pass
-	def createInitialWorld(self,_leftCardList,_rightCardList,_manaLimit,_boardLimit):
-		self.retWorld=w.world(_leftCardList,_rightCardList,_manaLimit,_boardLimit)
+	def createInitialWorld(self,_leftCardList,_rightCardList,_rule):
+		self.retWorld=w.world(_leftCardList,_rightCardList,_rule)
 		self.retWorld.dealCardsX(self.initialHand)
 		self.retWorld.dealCardsToOpponentX(self.initialHand+1)
 		return self.retWorld
 		pass
 	def developInitialGameTree(self):
-		self.wn=self.createInitialWorld(self.leftCardList,self.rightCardList,self.manaLimit,self.boardLimit)
+		self.wn=self.createInitialWorld(self.leftCardList,self.rightCardList,self.rule)
 		self.retTree=self.makeGameTree(self.wn,_state={"phase":"init"})
 		return self.retTree
 		pass
@@ -80,7 +80,7 @@ class gameMaster(object):
 		self.retMoves=move.move()
 		if _state["phase"]=="gameSet":
 			def inner(_w):
-				self.wn=self.createInitialWorld(self.leftCardList,self.rightCardList,self.manaLimit,self.boardLimit)
+				self.wn=self.createInitialWorld(self.leftCardList,self.rightCardList,self.rule)
 				return self.makeGameTree(self.wn,_state={"phase":"init"})
 				pass
 			self.retMoves.setDescription("reset game")
@@ -90,7 +90,7 @@ class gameMaster(object):
 			pass
 		if self.isGameEnded(_world):
 			def inner(_w):
-				self.wn=self.createInitialWorld(self.leftCardList,self.rightCardList,self.manaLimit,self.boardLimit)
+				self.wn=self.createInitialWorld(self.leftCardList,self.rightCardList,self.rule)
 				return self.makeGameTree(self.wn,_state={"phase":"gameSet"})
 				pass
 			self.winner="LEFT"
@@ -591,7 +591,7 @@ class gameMaster(object):
 					return self.makeGameTree(self.wn,{"phase":_state["phase"]})
 					pass
 				self.opponentBoard=_world.getOpponentPlayerBoard()
-				self.targetableCreatures=list(filter(lambda item:"guardian" in item[1].getSkillNamesByType("ability"),enumerate(self.opponentBoard.getElements())))
+				self.targetableCreatures=list(filter(lambda item:"guardian" in item[1].getSkillNamesByType("passive"),enumerate(self.opponentBoard.getElements())))
 				self.isThereGuardian=len(self.targetableCreatures)>0
 				if not self.isThereGuardian:
 					self.targetableCreatures=enumerate(self.opponentBoard.getElements())

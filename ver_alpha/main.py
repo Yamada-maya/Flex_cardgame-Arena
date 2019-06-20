@@ -37,7 +37,7 @@ class Application(tk.Tk):
 		#self.battleFrame=tk.Frame(self)
 		#self.battleFrame.place(relx=0,rely=0,relwidth=1,relheight=1)
 		self.deckEditFrame.tkraise()
-		self.agents=[human(),brain.randomBrain()]
+		self.agents=[human(),brain.ruleBaseBrain()]
 		self.rightDeck=[]
 		self.leftDeck=[]
 		self.iterate=0
@@ -127,9 +127,6 @@ class Application(tk.Tk):
 			pass
 		self.moves=_gameTree.getMoves()
 		self.state=_gameTree.getState()
-		if len(self.moves)==1:
-			self.retMove=fetchSimulationTrees((0,self.moves[0]))
-			return self.retMove
 		self.visibleWorld=w.visibleWorld(_gameTree.getWorld())
 		self.simulationTrees=list(map(fetchSimulationTrees,enumerate(self.moves)))
 		#agentに選んでもらう

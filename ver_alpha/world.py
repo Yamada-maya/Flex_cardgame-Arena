@@ -8,12 +8,13 @@ class visibleWorld(object):
 	"""docstring for visibleWorld"""
 	def __init__(self,_world=None):
 		super(visibleWorld,self).__init__()
+
 		self.LEFT=0
 		self.hands=[PA.hand(),PA.hand()]
 		self.graves=[PA.grave(),PA.grave()]
 		self.decks=[PA.deck([]),PA.deck([])]
 		self.boards=[PA.board(0),PA.board(0)]
-		self.players=[PA.playerStatus([],0),PA.playerStatus([],0)]
+		self.players=[PA.playerStatus([]),PA.playerStatus([])]
 		self.turnPlayer=self.LEFT
 		if not ( _world is None):
 			self.fetchInformationFromWorld(_world)
@@ -192,12 +193,12 @@ class visibleWorld(object):
 		pass
 class world(visibleWorld):
 	"""docstring for world"""
-	def __init__(self,_leftCardList,_rightCardList,_manaLimit=5,_boardLimit=3):
+	def __init__(self,_leftCardList,_rightCardList,_rule):
 		super().__init__()
 		self.RIGHT=1
 		self.decks=[PA.deck(_leftCardList),PA.deck(_rightCardList)]
-		self.boards=[PA.board(_boardLimit),PA.board(_boardLimit)]
-		self.players=[PA.playerStatus(_leftCardList,_manaLimit),PA.playerStatus(_rightCardList,_manaLimit)]
+		self.boards=[PA.board(_rule["board_max"]),PA.board(_rule["board_max"])]
+		self.players=[PA.playerStatus(_leftCardList,_rule),PA.playerStatus(_rightCardList,_rule)]
 		self.turnPlayer=self.LEFT
 		pass
 	def dumpWorld(self):

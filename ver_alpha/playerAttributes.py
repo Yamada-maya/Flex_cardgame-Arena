@@ -2,13 +2,13 @@ import copy
 import random
 class playerStatus(object):
 	"""docstring for playerStatus"""
-	def __init__(self,_cardList,_manaLimit):
+	def __init__(self,_cardList,_rule={"initial_life":10,"mana_max":5}):
 		super(playerStatus, self).__init__()
-		self.LIFE=10
+		self.LIFE=_rule["initial_life"]
 		self.currentMana=0
 		self.maxMana=0
 		self.cardList=_cardList
-		self.manaLimit=_manaLimit
+		self.manaLimit=_rule["mana_max"]
 	def consumeMana(self,num):
 		self.currentMana-=num
 		pass

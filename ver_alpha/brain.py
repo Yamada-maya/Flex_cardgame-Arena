@@ -72,6 +72,9 @@ class ruleBaseBrain(baseBrain):
 	def __init__(self):
 		super(ruleBaseBrain, self).__init__()
 	def chooseBestMove(self,_world,_moveList,_state):
+		if len(_moveList)==1:
+			return _moveList[0]
+			pass
 		self.index=0
 		self.values=list(map(lambda m:self.getActionValue(_world,m["tree"],_description=m["description"]),_moveList))
 		self.index=self.values.index(max(self.values))
