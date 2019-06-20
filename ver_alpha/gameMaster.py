@@ -78,30 +78,8 @@ class gameMaster(object):
 			return self.makeGameTree(self.wn,_state={"phase":_state["phase"]})
 			pass
 		self.retMoves=move.move()
-		if _state["phase"]=="gameSet":
-			def inner(_w):
-				self.wn=self.createInitialWorld(self.leftCardList,self.rightCardList,self.rule)
-				return self.makeGameTree(self.wn,_state={"phase":"init"})
-				pass
-			self.retMoves.setDescription("reset game")
-			self.retMoves.setGameTreePromise(self.delay(inner,_world))
-			self.retMoves.setSimulateTree(self.delay(inner,w.visibleWorld(_world)))
-			return [self.retMoves]
-			pass
 		if self.isGameEnded(_world):
-			def inner(_w):
-				self.wn=self.createInitialWorld(self.leftCardList,self.rightCardList,self.rule)
-				return self.makeGameTree(self.wn,_state={"phase":"gameSet"})
-				pass
-			self.winner="LEFT"
-			if self.getWinnerIndex(_world)==1:
-				self.winner="RIGHT"
-				pass
-			self.retMoves.setDescription("game set. winner is {_winner}, reset game.".format(_winner=self.winner))
-			_world.shiftNextTurn()
-			self.retMoves.setGameTreePromise(self.delay(inner,_world))
-			self.retMoves.setSimulateTree(None)
-			return [self.retMoves]
+			return []
 		if _state["phase"]=="init":
 			self.retMoves.setDescription("untap, upkeep")
 			def inner(_w):

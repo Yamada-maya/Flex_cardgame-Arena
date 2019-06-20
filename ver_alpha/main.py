@@ -105,6 +105,9 @@ class Application(tk.Tk):
 		pass
 	def shift(self,_gameTree):
 		self.visualizeMatchFromNode(_gameTree.getWorld())
+		if len(_gameTree.getMoves())==0:
+			sys.exit()
+			pass
 		if isinstance(self.agents[_gameTree.getWorld().getTurnPlayerIndex()],human):
 			self.setUpUI(_gameTree)
 			pass
@@ -208,22 +211,14 @@ class Application(tk.Tk):
 		stepは何も選ばず次のフェーズへ、ボタン式UIは選んで行動。という感じで…
 		REMARK!!!:AIの行動の時はここをstepだけにする。
 		"""
-		if len(_gameTree.getMoves())==1 and _gameTree.getMoves()[0].getGameTreePromise() is None:
-			self.move=_gameTree.getMoves()
-			self.moveButton=[]
-			self.moveButton.append(tk.Button(self,text=self.move[0].getDescription(),command=lambda :self.shift(self.gm.developInitialGameTree())))
-			self.moveButton[0].place(relx=0,rely=0.9,relwidth=1,relheight=0.1)
+		self.moves=_gameTree.getMoves()
+		self.moveButton=[]
+		self.move=[]
+		for i,m in enumerate(self.moves):
+			self.move.append(copy.deepcopy(m))
+			self.moveButton.append(tk.Button(self,text=self.move[i].getDescription(),command=lambda index=i:self.shift(self.gm.force(self.move[index].getGameTreePromise()))))
+			self.moveButton[i].place(relx=i/len(self.moves),rely=0.9,relwidth=1/len(self.moves),relheight=0.1)
 			pass
-		else:
-			self.moves=_gameTree.getMoves()
-			self.moveButton=[]
-			self.move=[]
-			for i,m in enumerate(self.moves):
-				self.move.append(copy.deepcopy(m))
-				self.moveButton.append(tk.Button(self,text=self.move[i].getDescription(),command=lambda index=i:self.shift(self.gm.force(self.move[index].getGameTreePromise()))))
-				self.moveButton[i].place(relx=i/len(self.moves),rely=0.9,relwidth=1/len(self.moves),relheight=0.1)
-				pass
-		pass
 	def forgetAllArea(self):
 		self.leftLifeArea.place_forget()
 		self.leftUnitArea.place_forget()
