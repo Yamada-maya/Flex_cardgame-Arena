@@ -57,7 +57,12 @@ class gameMaster(object):
 		pass
 	def makeGameTree(self,_world,_state):
 		# ここで_stateを返すとagentに渡すときに_worldを改変させられそう
-		self.retTree=gt.gameTree(_world=_world,_moves=self.listPossibleMoves(_world,_state),_state=_state)
+		self.moves=self.listPossibleMoves(_world,_state)
+		if len(self.moves)==0:
+			print("error?????????")
+			print(_state)
+			pass
+		self.retTree=gt.gameTree(_world=_world,_moves=self.moves,_state=_state)
 		return self.retTree
 		pass
 	def listPossibleMoves(self,_world,_state):
@@ -79,6 +84,7 @@ class gameMaster(object):
 			pass
 		self.retMoves=move.move()
 		if self.isGameEnded(_world):
+			print("end")
 			return []
 		if _state["phase"]=="init":
 			self.retMoves.setDescription("untap, upkeep")
@@ -171,6 +177,9 @@ class gameMaster(object):
 				self.additionalMove.setGameTreePromise(self.delay(shiftNextPhase,_world))
 				self.additionalMove.setSimulateTree(self.delay(shiftNextPhase,w.visibleWorld(_world)))
 				self.retMoves.append(self.additionalMove)
+				if len(self.retMoves)==0:
+					print("error in main !!!!!!!!!!!!!!!!!")
+					_world.dumpWorld()
 				return self.retMoves
 				pass
 			if _state["opt"]=="play":
@@ -201,6 +210,9 @@ class gameMaster(object):
 				self.turnPlayerHand=_world.getTurnPlayerHand().getElements()
 				self.playableHand=list(filter(lambda item:isPlayableCard(item),enumerate(self.turnPlayerHand)))
 				self.retMoves=list(map(playCard,self.playableHand))
+				if len(self.retMoves)==0:
+					print("error in play !!!!!!!!!!!!!!!!!")
+					_world.dumpWorld()
 				return self.retMoves
 				pass
 
@@ -233,6 +245,9 @@ class gameMaster(object):
 				self.skillCreatures=list(filter(lambda item:item[1].hasSkillsByType("activate"),list(enumerate(self.turnPlayerBoard))))
 				self.actionableCreatures=list(filter(lambda item:hasActivatableSkill(item[1]),self.skillCreatures))
 				self.retMoves=list(map(activateSkill,self.actionableCreatures))
+				if len(self.retMoves)==0:
+					print("error in activate !!!!!!!!!!!!!!!!!")
+					_world.dumpWorld()
 				return self.retMoves
 				pass
 			if _state["opt"]=="attack":
@@ -254,6 +269,9 @@ class gameMaster(object):
 				self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
 				self.attackableUnitTuple=list(filter(lambda item:item[1].isStand(),enumerate(self.turnPlayerBoard)))
 				self.retMoves=list(map(attackByCreature,list(self.attackableUnitTuple)))
+				if len(self.retMoves)==0:
+					print("error in activate !!!!!!!!!!!!!!!!!")
+					_world.dumpWorld()
 				return self.retMoves
 				pass
 		if _state["phase"]=="end":
@@ -600,8 +618,12 @@ class gameMaster(object):
 			pass
 		pass
 	def isGameEnded(self,_world):
+		#print("in isGameEnded")
+		#print(type(_world))
 		self.tp=_world.getTurnPlayer()
 		self.op=_world.getOpponentPlayer()
+		#print(self.tp.getLife())
+		#print(self.op.getLife())
 		if self.tp.isAlive() and self.op.isAlive():
 			return False
 		return True

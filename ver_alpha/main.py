@@ -7,6 +7,7 @@
 import sys
 import tkinter as tk
 import gameMaster as gm
+import gmForAgent
 import copy
 import deckBuilder as db
 import brain
@@ -14,6 +15,7 @@ import myAgent
 import world as w
 import time as t
 import json
+import datetime
 class human(object):
 	"""docstring for human"""
 	def __init__(self):
@@ -105,10 +107,10 @@ class visualizeApp(tk.Tk):
 		return True
 		pass
 	def shift(self,_gameTree):
-		self.visualizeMatchFromNode(_gameTree.getWorld())
 		if len(_gameTree.getMoves())==0:
 			sys.exit()
 			pass
+		self.visualizeMatchFromNode(_gameTree.getWorld())
 		if isinstance(self.agents[_gameTree.getWorld().getTurnPlayerIndex()],human):
 			self.setUpUI(_gameTree)
 			pass
@@ -254,7 +256,7 @@ class simpleApp(object):
 		self.rule=json.load(self.f)
 		self.f.close()
 		# ここまで
-		self.agents=[myAgent.myAgent(),myAgent.myAgent()]
+		self.agents=[brain.ruleBaseBrain(),brain.ruleBaseBrain()]
 		self.rightDeck=[]
 		self.leftDeck=[]
 	def deckBuild(self):
@@ -308,16 +310,25 @@ class simpleApp(object):
 			pass
 		pass
 	def shift(self,_gameTree):
-		print("len(_gameTree.getMoves())=")
-		print(len(_gameTree.getMoves()))
+		print(type(_gameTree.getWorld()))
 		if len(_gameTree.getMoves())==0:
-			print("passed...")
+			_gameTree.getWorld().dumpWorld()
 			l=list(map(lambda agent:self.giveResult(_gameTree.getWorld(),agent),enumerate(self.agents)))
 			return
 			pass
 		self.command=self.chooseMoveByAI(_gameTree,self.agents[_gameTree.getWorld().getTurnPlayerIndex()])
+		self.index=self.command["index"]
 		self.moves=_gameTree.getMoves()
-		self.shift(self.gm.force(self.moves[self.command["index"]].getGameTreePromise()))
+		print("------------------current world is...------------------")
+		_gameTree.getWorld().dumpWorld()
+		print("------------------end---------------------")
+		print("you can...")
+		for item in self.moves:
+			print(item.getDescription())
+			pass
+		print("you chose->")
+		print(self.moves[self.index].getDescription())
+		self.shift(self.gm.force(self.moves[self.index].getGameTreePromise()))
 	def chooseMoveByAI(self,_gameTree,_agent):
 		t.sleep(0.1)
 		def fetchSimulationTrees(_moveTuple):
@@ -328,12 +339,13 @@ class simpleApp(object):
 				}
 			return self.retDict
 			pass
-		self.moves=_gameTree.getMoves()
+		self.gmFor=gmForAgent.gmForAgent(_world=w.visibleWorld(_gameTree.getWorld()),_state=_gameTree.getState())
+		#self.argMoves=_gameTree.getMoves()
 		self.state=_gameTree.getState()
 		self.visibleWorld=w.visibleWorld(_gameTree.getWorld())
-		self.simulationTrees=list(map(fetchSimulationTrees,enumerate(self.moves)))
+		self.simulationTrees=list(map(fetchSimulationTrees,enumerate(self.gmFor.getTree().getMoves())))
 		#agentに選んでもらう
-		self.m=_agent.chooseBestMove(self.visibleWorld,copy.deepcopy(self.simulationTrees),self.state)
+		self.m=_agent.chooseBestMove(self.visibleWorld,self.simulationTrees,self.state)
 		return self.m
 		pass
 	def startBattle(self):
@@ -350,18 +362,13 @@ def main(_visualize=False):
 		pass
 	else:
 		app=simpleApp()
-		for i in range(100):
+		print(datetime.datetime.now())
+		for i in range(1):
 			app.startBattle()
+			print(datetime.datetime.now())
 			print(numOfWin)
 
 	pass
 if __name__ == '__main__':
 	numOfWin=[0,0]
 	main()
-	#dbRoot=tk.Tk()
-	#deckWindow=db.deckBuilder(master=dbRoot)
-	#deckWindow.mainloop()
-	#deck=deckWindow.getDeckList()
-	#gameRoot = tk.Tk()
-	#app = Application(master=gameRoot,_deckListL=deck,_deckListR=deck)
-	#app.mainloop()

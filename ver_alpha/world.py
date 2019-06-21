@@ -202,5 +202,31 @@ class world(visibleWorld):
 		self.turnPlayer=self.LEFT
 		pass
 	def dumpWorld(self):
-		print("current turn is {turn}, the left player is...".format(turn=self.turnPlayer))
+		print("current turn is {turn}".format(turn=self.turnPlayer))
+		print("turnPlayer info")
+		print("mana={mana}".format(mana=self.getTurnPlayer().getCurrentMana()))
+		print("life=")
+		print(self.getTurnPlayer().getLife())
+		print("deck left=")
+		print(self.getTurnPlayerDeck().getNumOfElements())
+		print("hand=")
+		for item in self.getTurnPlayerHand().getElements():
+			print(str(item))
+			pass
+		print("board=")
+		for item in self.getTurnPlayerBoard().getElements():
+			print(str(item))
+			pass
+		print("opponent info")
+		print("life=")
+		print(self.getOpponentPlayer().getLife())
+		print("deck left=")
+		print(self.getOpponentPlayerDeck().getNumOfElements())
+		print("hand=")
+		for item in self.getOpponentPlayerHand().getElements():
+			print(str(item))
+			pass
+		print("board=")
+		for item in self.getOpponentPlayerBoard().getElements():
+			print(str(item))
 		pass

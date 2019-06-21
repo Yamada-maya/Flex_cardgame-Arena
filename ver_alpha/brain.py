@@ -91,6 +91,9 @@ class ruleBaseBrain(baseBrain):
 		# それ以外であれば最大値を返す的な…
 		self.nextTree=_gameTreePromise()
 		if len(self.nextTree.getMoves())==0:
+			print("game end??? one chance!!")
+			print(self.nextTree.getWorld().getTurnPlayer().getLife())
+			print(self.nextTree.getWorld().getOpponentPlayer().getLife())
 			return 0
 			pass
 		self.nextWorld=self.nextTree.getWorld()
