@@ -310,7 +310,7 @@ class simpleApp(object):
 			pass
 		pass
 	def shift(self,_gameTree):
-		print(type(_gameTree.getWorld()))
+		#print(type(_gameTree.getWorld()))
 		if len(_gameTree.getMoves())==0:
 			_gameTree.getWorld().dumpWorld()
 			l=list(map(lambda agent:self.giveResult(_gameTree.getWorld(),agent),enumerate(self.agents)))
@@ -319,15 +319,15 @@ class simpleApp(object):
 		self.command=self.chooseMoveByAI(_gameTree,self.agents[_gameTree.getWorld().getTurnPlayerIndex()])
 		self.index=self.command["index"]
 		self.moves=_gameTree.getMoves()
-		print("------------------current world is...------------------")
-		_gameTree.getWorld().dumpWorld()
-		print("------------------end---------------------")
-		print("you can...")
-		for item in self.moves:
-			print(item.getDescription())
-			pass
-		print("you chose->")
-		print(self.moves[self.index].getDescription())
+		#print("------------------current world is...------------------")
+		#_gameTree.getWorld().dumpWorld()
+		#print("------------------end---------------------")
+		#print("you can...")
+		#for item in self.moves:
+		#	print(item.getDescription())
+		#	pass
+		#print("you chose->")
+		#print(self.moves[self.index].getDescription())
 		self.shift(self.gm.force(self.moves[self.index].getGameTreePromise()))
 	def chooseMoveByAI(self,_gameTree,_agent):
 		t.sleep(0.1)
