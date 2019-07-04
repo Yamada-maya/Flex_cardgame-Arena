@@ -1,5 +1,6 @@
 [
 	{
+		"id":1,
 		"cardName": "slime",
 		"baseCost": 0,
 		"baseToughness": 1,
@@ -13,6 +14,7 @@
 		"skills": {}
 	},
 	{
+		"id":2,
 		"cardName": "lion",
 		"baseCost": 1,
 		"baseToughness": 1,
@@ -26,6 +28,7 @@
 		"skills": {}
 	},
 	{
+		"id":3,
 		"cardName": "goblin",
 		"baseCost": 1,
 		"baseToughness": 1,
@@ -47,6 +50,7 @@
 		}
 	},
 	{
+		"id":4,
 		"cardName": "brick",
 		"baseCost": 1,
 		"baseToughness": 2,
@@ -66,6 +70,7 @@
 		}
 	},
 	{
+		"id":5,
 		"cardName": "element",
 		"baseCost": 1,
 		"baseToughness": 1,
@@ -87,6 +92,7 @@
 		}
 	},
 	{
+		"id":6,
 		"cardName": "shaman",
 		"baseCost": 1,
 		"baseToughness": 1,
@@ -111,6 +117,7 @@
 		}
 	},
 	{
+		"id":7,
 		"cardName": "bear",
 		"baseCost": 2,
 		"baseToughness": 2,
@@ -124,6 +131,7 @@
 		"skills": {}
 	},
 	{
+		"id":8,
 		"cardName": "wolf",
 		"baseCost": 2,
 		"baseToughness": 1,
@@ -145,6 +153,7 @@
 		}
 	},
 	{
+		"id":9,
 		"cardName": "wall",
 		"baseCost": 2,
 		"baseToughness": 3,
@@ -164,6 +173,7 @@
 		}
 	},
 	{
+		"id":10,
 		"cardName": "elephant",
 		"baseCost": 3,
 		"baseToughness": 3,
@@ -177,6 +187,7 @@
 		"skills": {}
 	},
 	{
+		"id":11,
 		"cardName": "dragon",
 		"baseCost": 3,
 		"baseToughness": 2,
@@ -198,6 +209,7 @@
 		}
 	},
 	{
+		"id":12,
 		"cardName": "angel",
 		"baseCost": 3,
 		"baseToughness": 2,
@@ -222,6 +234,7 @@
 		}
 	},
 	{
+		"id":13,
 		"cardName": "knight",
 		"baseCost": 3,
 		"baseToughness": 4,
@@ -241,6 +254,7 @@
 		}
 	},
 	{
+		"id":14,
 		"cardName": "impact",
 		"baseCost": 2,
 		"baseToughness": 0,
@@ -253,6 +267,7 @@
 		"skills": {}
 	},
 	{
+		"id":15,
 		"cardName": "knowledge",
 		"baseCost": 3,
 		"baseToughness": 0,
@@ -265,6 +280,7 @@
 		"skills": {}
 	},
 	{
+		"id":16,
 		"cardName": "growth",
 		"baseCost": 3,
 		"baseToughness": 0,

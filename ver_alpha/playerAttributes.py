@@ -59,6 +59,7 @@ class factor(object):
 	def fillByDummyCards(self,_n):
 		self.dummyCard={
 		"cardName": "dummy",
+		"id":0,
 		"baseCost": 0,
 		"baseToughness": 1,
 		"basePower": 1,

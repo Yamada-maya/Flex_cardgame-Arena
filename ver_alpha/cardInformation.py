@@ -17,6 +17,9 @@ class card(object):
 	def __str__(self):
 		return "{name},{c}/{p}/{t}".format(name=self.getCardName(),c=self.getBaseCost(),p=self.getBasePower(),t=self.getBaseToughness())
 		pass
+	def getID(self):
+		return self.statusDict["id"]
+		pass
 	def getCardName(self):
 		return self.statusDict["cardName"]
 		pass

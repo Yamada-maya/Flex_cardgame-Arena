@@ -82,7 +82,6 @@ class gameMaster(object):
 			pass
 		self.retMoves=move.move()
 		if self.isGameEnded(_world):
-			print("end")
 			return []
 		if _state["phase"]=="init":
 			self.retMoves.setDescription("untap, upkeep")

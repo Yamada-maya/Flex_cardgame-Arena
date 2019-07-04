@@ -4,6 +4,7 @@
 import playerAttributes as PA
 import cardInformation as CI
 import copy
+import random
 class visibleWorld(object):
 	"""docstring for visibleWorld"""
 	def __init__(self,_world=None):
@@ -15,7 +16,7 @@ class visibleWorld(object):
 		self.decks=[PA.deck([]),PA.deck([])]
 		self.boards=[PA.board(0),PA.board(0)]
 		self.players=[PA.playerStatus([]),PA.playerStatus([])]
-		self.turnPlayer=self.LEFT
+		#self.turnPlayer=self.LEFT
 		if not ( _world is None):
 			self.fetchInformationFromWorld(_world)
 			pass
@@ -199,7 +200,7 @@ class world(visibleWorld):
 		self.decks=[PA.deck(_leftCardList),PA.deck(_rightCardList)]
 		self.boards=[PA.board(_rule["board_max"]),PA.board(_rule["board_max"])]
 		self.players=[PA.playerStatus(_leftCardList,_rule),PA.playerStatus(_rightCardList,_rule)]
-		self.turnPlayer=self.LEFT
+		self.turnPlayer=int(random.random()*2)
 		pass
 	def dumpWorld(self):
 		print("current turn is {turn}".format(turn=self.turnPlayer))

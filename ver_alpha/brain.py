@@ -28,7 +28,7 @@ class randomBrain(baseBrain):
 		super(randomBrain, self).__init__()
 	def developOwnDeck(self,_cardList,_ruleList):
 		self.retList=[]
-		self.hit=_ruleList["deck_min"]
+		self.hit=int(random.random()*(len(_cardList)*_ruleList["max_per_card"]-_ruleList["deck_min"]+1))+_ruleList["deck_min"]
 		self.l=[]
 		for item in _cardList:
 			for index in range(_ruleList["max_per_card"]):
@@ -90,21 +90,19 @@ class ruleBaseBrain(baseBrain):
 		# 自分の最後の盤面であればその時の評価値を返す。
 		# それ以外であれば最大値を返す的な…
 		self.nextTree=_gameTreePromise()
-		if len(self.nextTree.getMoves())==0:
-			print("game end??? one chance!!")
-			print(self.nextTree.getWorld().getTurnPlayer().getLife())
-			print(self.nextTree.getWorld().getOpponentPlayer().getLife())
+		if len(self.nextTree.getMoves())==0 or _recursive>5:
 			return 0
 			pass
 		self.nextWorld=self.nextTree.getWorld()
 		if self.nextWorld.getTurnPlayerIndex()!=_world.getTurnPlayerIndex():
 			return self.calculateWorldValue(_world)
-		return max(list(map(lambda m:self.simulateUntilEndOfMyTurn(self.nextWorld,m.getGameTreePromise(),_description=m.getDescription(),_recursive=_recursive+1),self.nextTree.getMoves())))
+		return max(list(map(lambda m,w=self.nextWorld:self.simulateUntilEndOfMyTurn(w,m.getGameTreePromise(),_description=m.getDescription(),_recursive=_recursive+1),self.nextTree.getMoves())))
 		pass
 	def calculateWorldValue(self,_world):
 		self.opponentLife=_world.getOpponentPlayer().getLife()
 		self.handValue=_world.getTurnPlayerHand().getNumOfElements()
 		self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
+
 		self.boardValue=self.calculateBoardValue(self.turnPlayerBoard)
 		self.opponentPlayerBoard=_world.getOpponentPlayerBoard().getElements()
 		self.opponentBoardValue=self.calculateBoardValue(self.opponentPlayerBoard)

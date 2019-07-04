@@ -16,6 +16,8 @@ import world as w
 import time as t
 import json
 import datetime
+import csv
+import random
 class human(object):
 	"""docstring for human"""
 	def __init__(self):
@@ -256,9 +258,17 @@ class simpleApp(object):
 		self.rule=json.load(self.f)
 		self.f.close()
 		# ここまで
-		self.agents=[brain.ruleBaseBrain(),brain.ruleBaseBrain()]
+		self.agents=[myAgent.myAgent(),brain.randomBrain()]
 		self.rightDeck=[]
 		self.leftDeck=[]
+		self.agentStock=[brain.randomBrain(),brain.ruleBaseBrain()]
+		self.learning=True;
+	def setLearningFlagToFalse(self):
+		self.learning=False
+		pass
+	def setLearningFlagToTrue(self):
+		self.learning=True
+		pass
 	def deckBuild(self):
 		self.iterate=0
 		while not self.doesDeckSuitForRules(self.rightDeck,self.cardList,self.rule):
@@ -304,9 +314,12 @@ class simpleApp(object):
 	def giveResult(self,_world,_agentTuple):
 		self.winnerIndex=self.gm.getWinnerIndex(_world)
 		self.sign=self.winnerIndex==_agentTuple[0]
-		_agentTuple[1].getGameResult(self.sign)
+		self.lo=self.winnerIndex!=_world.getTurnPlayerIndex()
+		if _agentTuple[0]==0 and self.learning:
+			_agentTuple[1].getGameResult(self.sign and (not self.lo))
+			pass
 		if self.sign:
-			numOfWin[_agentTuple[0]]+=1
+			resultHolder.plus(_agentTuple[0])
 			pass
 		pass
 	def shift(self,_gameTree):
@@ -314,6 +327,11 @@ class simpleApp(object):
 		if len(_gameTree.getMoves())==0:
 			_gameTree.getWorld().dumpWorld()
 			l=list(map(lambda agent:self.giveResult(_gameTree.getWorld(),agent),enumerate(self.agents)))
+			self.leftDeck=[]
+			self.rightDeck=[]
+			if _gameTree.getWorld().getTurnPlayerIndex()!=self.gm.getWinnerIndex(_gameTree.getWorld()):
+				resultHolder.plus(2)
+				pass
 			return
 			pass
 		self.command=self.chooseMoveByAI(_gameTree,self.agents[_gameTree.getWorld().getTurnPlayerIndex()])
@@ -354,7 +372,23 @@ class simpleApp(object):
 		self.tree=self.gm.developInitialGameTree()
 		self.shift(self.tree)
 		pass
-
+	def addCurrentAgent(self):
+		self.agentStock.append(copy.deepcopy(self.agents[0]))
+		pass
+	def setRuleBaseToOpponent(self):
+		self.agents[1]=brain.ruleBaseBrain()
+		print(type(self.agents[0]))
+		print(type(self.agents[1]))
+		pass
+	def randomAgentPop(self):
+		self.agentIndex=int(random.random()*len(self.agentStock))
+		print(self.agentIndex)
+		return self.agentStock[self.agentIndex]
+		pass
+	def changeAgent(self):
+		self.agents[1]=self.randomAgentPop()
+		print(type(self.agents[1]))
+		pass
 def main(_visualize=False):
 	if _visualize:
 		app=visualizeApp()
@@ -363,12 +397,50 @@ def main(_visualize=False):
 	else:
 		app=simpleApp()
 		print(datetime.datetime.now())
-		for i in range(1):
-			app.startBattle()
-			print(datetime.datetime.now())
+		for i in range(200):
+			app.agents[0].setLearningStateToTrue()
+			app.setLearningFlagToTrue()
+			for k in range(10):
+				app.changeAgent()
+				app.startBattle()
+				print(datetime.datetime.now())
+			numOfWin.append(resultHolder.getResult())
 			print(numOfWin)
-
-	pass
+			resultHolder.initialize()
+			app.addCurrentAgent()
+			with open("./data/process.csv",'w') as f:
+				writer=csv.writer(f,lineterminator="\n")
+				writer.writerows(numOfWin)
+			app.agents[0].setLearningStateToFalse()
+			app.setLearningFlagToFalse()
+			app.setRuleBaseToOpponent()			
+			for i in range(5):
+				for k in range(10):
+					app.startBattle()
+				finalResult.append(resultHolder.getResult())
+				resultHolder.initialize()
+				with open("./data/result.csv",'w') as f:
+					writer=csv.writer(f,lineterminator="\n")
+					writer.writerows(finalResult)
+				pass
+		pass
+class result(object):
+	"""docstring for result"""
+	def __init__(self):
+		super(result, self).__init__()
+		self.res=[0,0,0]
+	def getResult(self):
+		return self.res
+	def plus(self,index):
+		self.res[index]+=1
+	def initialize(self):
+		self.res=[0,0,0]
+		pass
 if __name__ == '__main__':
-	numOfWin=[0,0]
+	resultHolder=result()
+	numOfWin=[]
+	finalResult=[]
 	main()
+	with open("./data/result.csv",'w') as f:
+		writer=csv.writer(f,lineterminator="\n")
+		writer.writerows(numOfWin)
