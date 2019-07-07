@@ -42,7 +42,7 @@ class visualizeApp(tk.Tk):
 		#self.battleFrame=tk.Frame(self)
 		#self.battleFrame.place(relx=0,rely=0,relwidth=1,relheight=1)
 		self.deckEditFrame.tkraise()
-		self.agents=[human(),brain.ruleBaseBrain()]
+		self.agents=[human(),brain.ruleBaseBrain(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))]
 		self.rightDeck=[]
 		self.leftDeck=[]
 		self.iterate=0
@@ -51,7 +51,7 @@ class visualizeApp(tk.Tk):
 				print("error")
 				sys.exit(self.iterate)
 				pass
-			self.rightDeck=self.agents[1].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
+			self.rightDeck=self.agents[1].developOwnDeck()
 			self.iterate+=1
 			pass
 		if isinstance(self.agents[0],human):
@@ -62,7 +62,7 @@ class visualizeApp(tk.Tk):
 				if self.iterate==5:
 					sys.exit(self.iterate)
 					pass
-				self.leftDeck=self.agents[0].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
+				self.leftDeck=self.agents[0].developOwnDeck()
 				self.iterate+=1
 				pass
 			self.changeBattlePage()
@@ -258,10 +258,10 @@ class simpleApp(object):
 		self.rule=json.load(self.f)
 		self.f.close()
 		# ここまで
-		self.agents=[myAgent.myAgent(),brain.randomBrain()]
+		self.agents=[myAgent.evolutioneryAgent(copy.deepcopy(self.cardList),copy.deepcopy(self.rule)),brain.randomBrain(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))]
 		self.rightDeck=[]
 		self.leftDeck=[]
-		self.agentStock=[brain.randomBrain(),brain.ruleBaseBrain()]
+		self.agentStock=[brain.randomBrain(copy.deepcopy(self.cardList),copy.deepcopy(self.rule)),brain.ruleBaseBrain(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))]
 		self.learning=True;
 	def setLearningFlagToFalse(self):
 		self.learning=False
@@ -276,7 +276,7 @@ class simpleApp(object):
 				print("error")
 				sys.exit(self.iterate)
 				pass
-			self.rightDeck=self.agents[1].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
+			self.rightDeck=self.agents[1].developOwnDeck()
 			self.iterate+=1
 			pass
 		self.iterate=0
@@ -284,7 +284,7 @@ class simpleApp(object):
 			if self.iterate==5:
 				sys.exit(self.iterate)
 				pass
-			self.leftDeck=self.agents[0].developOwnDeck(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))
+			self.leftDeck=self.agents[0].developOwnDeck()
 			self.iterate+=1
 			pass
 		pass
@@ -389,6 +389,9 @@ class simpleApp(object):
 		self.agents[1]=self.randomAgentPop()
 		print(type(self.agents[1]))
 		pass
+	def getMyAgent(self):
+		return self.agents[0]
+		pass
 def main(_visualize=False):
 	if _visualize:
 		app=visualizeApp()
@@ -396,34 +399,12 @@ def main(_visualize=False):
 		pass
 	else:
 		app=simpleApp()
-		print(datetime.datetime.now())
-		for i in range(200):
-			app.agents[0].setLearningStateToTrue()
-			app.setLearningFlagToTrue()
-			for k in range(10):
-				app.changeAgent()
-				app.startBattle()
-				print(datetime.datetime.now())
-			numOfWin.append(resultHolder.getResult())
-			print(numOfWin)
-			resultHolder.initialize()
-			app.addCurrentAgent()
-			with open("./data/process.csv",'w') as f:
-				writer=csv.writer(f,lineterminator="\n")
-				writer.writerows(numOfWin)
-			app.agents[0].setLearningStateToFalse()
-			app.setLearningFlagToFalse()
-			app.setRuleBaseToOpponent()			
-			for i in range(5):
-				for k in range(10):
-					app.startBattle()
-				finalResult.append(resultHolder.getResult())
-				resultHolder.initialize()
-				with open("./data/result.csv",'w') as f:
-					writer=csv.writer(f,lineterminator="\n")
-					writer.writerows(finalResult)
-				pass
-		pass
+		for i in range(1):
+			app.getMyAgent().evoluteCoefficients()
+			app.setRuleBaseToOpponent()
+			app.startBattle()
+			pass
+		
 class result(object):
 	"""docstring for result"""
 	def __init__(self):

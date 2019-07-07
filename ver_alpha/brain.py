@@ -3,8 +3,10 @@ import random
 import gmForAgent as gm
 class baseBrain(object):
 	"""docstring for baseBrain"""
-	def __init__(self):
+	def __init__(self,_cardList,_rule):
 		super(baseBrain, self).__init__()
+		self.cardList=_cardList
+		self.rule=_rule
 		self.mainActions=["play a card","activate a skill","attack by creature"]
 	def chooseBestMove(self,_world,_moveList,_state):
 		#implement this point!!
@@ -14,9 +16,9 @@ class baseBrain(object):
 		pass
 	def getGameResult(self,_won):
 		pass
-	def developOwnDeck(self,_cardList,_ruleList):
+	def developOwnDeck(self):
 		self.retList=[]
-		for item in _cardList:
+		for item in self.cardList:
 			self.retList.append(copy.deepcopy(item))
 			self.retList.append(copy.deepcopy(item))
 			pass
@@ -24,14 +26,14 @@ class baseBrain(object):
 		pass
 class randomBrain(baseBrain):
 	"""docstring for randomBrain"""
-	def __init__(self):
-		super(randomBrain, self).__init__()
-	def developOwnDeck(self,_cardList,_ruleList):
+	def __init__(self,_cardList,_rule):
+		super(randomBrain, self).__init__(_cardList,_rule)
+	def developOwnDeck(self):
 		self.retList=[]
-		self.hit=int(random.random()*(len(_cardList)*_ruleList["max_per_card"]-_ruleList["deck_min"]+1))+_ruleList["deck_min"]
+		self.hit=int(random.random()*(len(self.cardList)*self.rule["max_per_card"]-self.rule["deck_min"]+1))+self.rule["deck_min"]
 		self.l=[]
-		for item in _cardList:
-			for index in range(_ruleList["max_per_card"]):
+		for item in self.cardList:
+			for index in range(self.rule["max_per_card"]):
 				self.l.append(copy.deepcopy(item))
 				pass
 			pass
@@ -71,8 +73,8 @@ class randomBrain(baseBrain):
 		pass
 class ruleBaseBrain(baseBrain):
 	"""docstring for ruleBaseBrain"""
-	def __init__(self):
-		super(ruleBaseBrain, self).__init__()
+	def __init__(self,_cardList,_rule):
+		super(ruleBaseBrain, self).__init__(_cardList,_rule)
 	def chooseBestMove(self,_world,_moveList,_state):
 		if len(_moveList)==1:
 			return _moveList[0]
@@ -91,7 +93,7 @@ class ruleBaseBrain(baseBrain):
 		# それ以外であれば最大値を返す的な…
 		self.nextTree=_gameTreePromise()
 		if len(self.nextTree.getMoves())==0 or _recursive>5:
-			return 0
+			return self.calculateWorldValue(_world)
 			pass
 		self.nextWorld=self.nextTree.getWorld()
 		if self.nextWorld.getTurnPlayerIndex()!=_world.getTurnPlayerIndex():
@@ -102,7 +104,6 @@ class ruleBaseBrain(baseBrain):
 		self.opponentLife=_world.getOpponentPlayer().getLife()
 		self.handValue=_world.getTurnPlayerHand().getNumOfElements()
 		self.turnPlayerBoard=_world.getTurnPlayerBoard().getElements()
-
 		self.boardValue=self.calculateBoardValue(self.turnPlayerBoard)
 		self.opponentPlayerBoard=_world.getOpponentPlayerBoard().getElements()
 		self.opponentBoardValue=self.calculateBoardValue(self.opponentPlayerBoard)
