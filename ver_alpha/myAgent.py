@@ -236,27 +236,32 @@ class evolutioneryAgent(brain.baseBrain):
 		self.subCoefficients=self.developMutatedCoefficients()
 		self.candidates=[0 for i in range(self.numOfCandidates)]
 		self.historicCoefficients=[self.coefficients,self.subCoefficients]
+		self.coefficients=[-0.052673591122294285,
+								 -0.21409567969204596,
+								 0.7454795798136845,
+								 -0.5613887268733493,
+								 -0.28371010936484903]
 	def developOwnDeck(self):
 		self.retList=[]
-		self.retList.append(copy.deepcopy(self.cardList[0]))
-		self.retList.append(copy.deepcopy(self.cardList[0]))
-		self.retList.append(copy.deepcopy(self.cardList[1]))
-		self.retList.append(copy.deepcopy(self.cardList[1]))
-		self.retList.append(copy.deepcopy(self.cardList[2]))
-		self.retList.append(copy.deepcopy(self.cardList[2]))
+		self.retList.append(copy.deepcopy(self.cardList[3]))
+		self.retList.append(copy.deepcopy(self.cardList[3]))
 		self.retList.append(copy.deepcopy(self.cardList[4]))
 		self.retList.append(copy.deepcopy(self.cardList[4]))
-		self.retList.append(copy.deepcopy(self.cardList[6]))
-		self.retList.append(copy.deepcopy(self.cardList[6]))
-		self.retList.append(copy.deepcopy(self.cardList[7]))
-		self.retList.append(copy.deepcopy(self.cardList[7]))
+		self.retList.append(copy.deepcopy(self.cardList[5]))
+		self.retList.append(copy.deepcopy(self.cardList[5]))
+		self.retList.append(copy.deepcopy(self.cardList[8]))
+		self.retList.append(copy.deepcopy(self.cardList[8]))
 		self.retList.append(copy.deepcopy(self.cardList[9]))
-		self.retList.append(copy.deepcopy(self.cardList[10]))
-		self.retList.append(copy.deepcopy(self.cardList[10]))
+		self.retList.append(copy.deepcopy(self.cardList[9]))
+		self.retList.append(copy.deepcopy(self.cardList[11]))
+		self.retList.append(copy.deepcopy(self.cardList[11]))
+		self.retList.append(copy.deepcopy(self.cardList[12]))
+		self.retList.append(copy.deepcopy(self.cardList[12]))
 		self.retList.append(copy.deepcopy(self.cardList[13]))
 		self.retList.append(copy.deepcopy(self.cardList[13]))
 		self.retList.append(copy.deepcopy(self.cardList[14]))
 		self.retList.append(copy.deepcopy(self.cardList[14]))
+		self.retList.append(copy.deepcopy(self.cardList[15]))
 		self.retList.append(copy.deepcopy(self.cardList[15]))
 		return self.retList
 	def developMutatedCoefficients(self):

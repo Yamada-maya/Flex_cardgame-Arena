@@ -42,7 +42,7 @@ class visualizeApp(tk.Tk):
 		#self.battleFrame=tk.Frame(self)
 		#self.battleFrame.place(relx=0,rely=0,relwidth=1,relheight=1)
 		self.deckEditFrame.tkraise()
-		self.agents=[human(),brain.ruleBaseBrain(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))]
+		self.agents=[human(),myAgent.evolutioneryAgent(copy.deepcopy(self.cardList),copy.deepcopy(self.rule))]
 		self.rightDeck=[]
 		self.leftDeck=[]
 		self.iterate=0
@@ -392,7 +392,7 @@ class simpleApp(object):
 	def getMyAgent(self):
 		return self.agents[0]
 		pass
-def main(_visualize=False):
+def main(_visualize=True):
 	if _visualize:
 		app=visualizeApp()
 		app.mainloop()
